@@ -17,7 +17,25 @@
                  (list (create-datum table-name))
                  options)))
 
-(defun insert (table value)
+(defmacro defterm (name type (&rest args) (&rest options) &optional docstring)
+  (let ((option (gensym "option")))
+    `(defun ,name (,@(loop for a in args collect (car a))
+                    &key ,@(loop for k in options collect (append (list (caar k)) (cdr k))))
+       ,docstring
+       `(let ((term (make-instance 'term))
+              (options nil))
+          (setf (type term) ,type)
+          ;; type check
+          ,@(loop for a across args
+                  collect `(assert (typep ,(car a) ,(cadr a))))
+          ,@(loop for k across options
+                  collect `(assert (typep ,(caar k) ,(cadar k))))
+          (dolist (,option ,options)
+            (when ,(caddr option)
+              (push (cons ,(caddar option) ,(caar option)) options)))
+          ))))
+
+(defun insert (table value &key upsert)
   "Create an insert query, given a table object and a set of values. The table
    object must be one returned by the table function, but the values must not
    be query objects (ie datum/term objects) because those will be created
@@ -25,31 +43,22 @@
    
    The value can be a hash table (or alist), or an array of hashes/alists (in
    the case of a multi-insert)."
-  (let ((insert-term (make-instance 'term)))
-    (setf (type insert-term) +term-term-type-insert+)
-    (vector-push-extend table (args insert-term))
-    (let ((term (cond ((or (hash-table-p value)
-                           (alistp value))
-                       (datum-term (create-datum value)))
-                      ((subtypep (type-of value) '(or list vector))
-                       (let ((terms nil))
-                         (do-list/vector (obj value)
-                           (format t "obj: ~a~%" obj)
-                           (push (datum-term (create-datum obj)) terms))
-                         (create-term +term-term-type-make-array+
-                                      (reverse terms))))
-                      (t
-                       (error 'reql-bad-value
-                              :msg "Value must be a hashtable, alist, or list/vector of hashtables or alists.")))))
-      (format t "~a~%" term)
-      (vector-push-extend term (args insert-term)))
-    insert-term))
+  (assert (and (typep table 'term)
+               (eq (type table) +term-term-type-table+)))
+  (assert (typep value '(or object-collection object)))
+  (assert (typep upsert 'boolean))
+  (let ((value (cond ((object-collection-p value)
+                      (let ((terms nil))
+                        (do-list/vector (obj value)
+                          (push (datum-term (create-datum obj)) terms))
+                        (create-term +term-term-type-make-array+
+                                     (reverse terms))))
+                     ((objectp value)
+                      (datum-term (create-datum value)))
+                     (t
+                      (error 'reql-bad-value
+                             :msg "Value must be a hashtable, alist, or list/vector of hashtables or alists.")))))
+    (create-term +term-term-type-insert+
+                 (list table value)
+                 (when upsert '(("upsert" . t))))))
 
-(progn
-(insert (table "omg")
-        '((("name" . "leonard"))))
-(insert (table "omg")
-        '(("name" . "leonard")))
-nil)
-
-(create-datum '(("name" . "leonard")))
