@@ -3,11 +3,17 @@
   :license "MIT"
   :version "0.0.1"
   :description "A RethinkDB driver for Common Lisp"
-  :depends-on (#:protobuf #:cl-async-future #:cl-async)
+  :depends-on (#:protobuf #:cl-hash-util #:cl-async-future #:cl-async)
   :components
   ((:file "package")
-   (:file "protocol" :depends-on ("package"))
-   (:file "comm" :depends-on ("protocol"))
-
-   ))
+   (:file "util" :depends-on ("package"))
+   (:file "protocol" :depends-on ("util"))
+   (:module reql
+    :serial t
+	:components
+	((:file "datum")
+	 (:file "term")
+	 (:file "commands"))
+	:depends-on ("util"))
+   (:file "connection" :depends-on ("util"))))
 
