@@ -6,21 +6,21 @@
 
 (cl:in-package #:common-lisp-user)
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (find-package '#:protocol-buffer)
-    (make-package '#:protocol-buffer :use nil)))
-(in-package #:protocol-buffer)
+  (unless (find-package '#:cl-rethinkdb-proto)
+    (make-package '#:cl-rethinkdb-proto :use nil)))
+(in-package #:cl-rethinkdb-proto)
 (cl:declaim #.com.google.base:*optimize-default*)
 
-(cl:deftype version () '(cl:member 1063369270))
-(cl:export 'version)
+(cl:deftype version-dummy-version () '(cl:member 1063369270))
+(cl:export 'version-dummy-version)
 
-(cl:defconstant +version-v0-1+ 1063369270)
-(cl:export '+version-v0-1+)
+(cl:defconstant +version-dummy-version-v0-1+ 1063369270)
+(cl:export '+version-dummy-version-v0-1+)
 
-(cl:defconstant +minimum-version+ +version-v0-1+)
-(cl:export '+minimum-version+)
-(cl:defconstant +maximum-version+ +version-v0-1+)
-(cl:export '+maximum-version+)
+(cl:defconstant +minimum-version-dummy-version+ +version-dummy-version-v0-1+)
+(cl:export '+minimum-version-dummy-version+)
+(cl:defconstant +maximum-version-dummy-version+ +version-dummy-version-v0-1+)
+(cl:export '+maximum-version-dummy-version+)
 
 (cl:deftype query-query-type () '(cl:member 1 2 3))
 (cl:export 'query-query-type)
@@ -37,18 +37,18 @@
 (cl:defconstant +maximum-query-query-type+ +query-query-type-stop+)
 (cl:export '+maximum-query-query-type+)
 
-(cl:deftype response-frame-frame-type () '(cl:member 1 2))
-(cl:export 'response-frame-frame-type)
+(cl:deftype frame-frame-type () '(cl:member 1 2))
+(cl:export 'frame-frame-type)
 
-(cl:defconstant +response-frame-frame-type-pos+ 1)
-(cl:export '+response-frame-frame-type-pos+)
-(cl:defconstant +response-frame-frame-type-opt+ 2)
-(cl:export '+response-frame-frame-type-opt+)
+(cl:defconstant +frame-frame-type-pos+ 1)
+(cl:export '+frame-frame-type-pos+)
+(cl:defconstant +frame-frame-type-opt+ 2)
+(cl:export '+frame-frame-type-opt+)
 
-(cl:defconstant +minimum-response-frame-frame-type+ +response-frame-frame-type-pos+)
-(cl:export '+minimum-response-frame-frame-type+)
-(cl:defconstant +maximum-response-frame-frame-type+ +response-frame-frame-type-opt+)
-(cl:export '+maximum-response-frame-frame-type+)
+(cl:defconstant +minimum-frame-frame-type+ +frame-frame-type-pos+)
+(cl:export '+minimum-frame-frame-type+)
+(cl:defconstant +maximum-frame-frame-type+ +frame-frame-type-opt+)
+(cl:export '+maximum-frame-frame-type+)
 
 (cl:deftype response-response-type () '(cl:member 1 2 3 16 17 18))
 (cl:export 'response-response-type)
@@ -92,7 +92,7 @@
 (cl:defconstant +maximum-datum-datum-type+ +datum-datum-type-r-object+)
 (cl:export '+maximum-datum-datum-type+)
 
-(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69))
+(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69 70 71 72 73 74))
 (cl:export 'term-term-type)
 
 (cl:defconstant +term-term-type-datum+ 1)
@@ -143,6 +143,10 @@
 (cl:export '+term-term-type-append+)
 (cl:defconstant +term-term-type-slice+ 30)
 (cl:export '+term-term-type-slice+)
+(cl:defconstant +term-term-type-skip+ 70)
+(cl:export '+term-term-type-skip+)
+(cl:defconstant +term-term-type-limit+ 71)
+(cl:export '+term-term-type-limit+)
 (cl:defconstant +term-term-type-getattr+ 31)
 (cl:export '+term-term-type-getattr+)
 (cl:defconstant +term-term-type-contains+ 32)
@@ -183,8 +187,10 @@
 (cl:export '+term-term-type-outer-join+)
 (cl:defconstant +term-term-type-eq-join+ 50)
 (cl:export '+term-term-type-eq-join+)
-(cl:defconstant +term-term-type-coerce+ 51)
-(cl:export '+term-term-type-coerce+)
+(cl:defconstant +term-term-type-zip+ 72)
+(cl:export '+term-term-type-zip+)
+(cl:defconstant +term-term-type-coerce-to+ 51)
+(cl:export '+term-term-type-coerce-to+)
 (cl:defconstant +term-term-type-typeof+ 52)
 (cl:export '+term-term-type-typeof+)
 (cl:defconstant +term-term-type-update+ 53)
@@ -219,34 +225,172 @@
 (cl:export '+term-term-type-foreach+)
 (cl:defconstant +term-term-type-func+ 69)
 (cl:export '+term-term-type-func+)
+(cl:defconstant +term-term-type-asc+ 73)
+(cl:export '+term-term-type-asc+)
+(cl:defconstant +term-term-type-desc+ 74)
+(cl:export '+term-term-type-desc+)
 
 (cl:defconstant +minimum-term-term-type+ +term-term-type-datum+)
 (cl:export '+minimum-term-term-type+)
-(cl:defconstant +maximum-term-term-type+ +term-term-type-func+)
+(cl:defconstant +maximum-term-term-type+ +term-term-type-desc+)
 (cl:export '+maximum-term-term-type+)
+
+(cl:defclass version-dummy (pb:protocol-buffer)
+  (
+  (pb::%cached-size%
+   :initform 0
+   :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
+  ))
+
+(cl:export 'version-dummy)
+
+
+(cl:defmethod cl:print-object ((self version-dummy) stream)
+  (cl:pprint-logical-block (stream cl:nil)
+    (cl:print-unreadable-object (self stream :type cl:t :identity cl:t)
+      ))
+  (cl:values))
+
+(cl:defmethod pb:clear ((self version-dummy))
+  (cl:setf (cl:slot-value self '%has-bits%) 0)
+  (cl:values))
+
+(cl:defmethod pb:is-initialized ((self version-dummy))
+  cl:t)
+
+(cl:defmethod pb:octet-size ((self version-dummy))
+  (cl:let ((size 0))
+    (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
+    size))
+
+(cl:defmethod pb:serialize ((self version-dummy) buffer index limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index index limit)
+              (cl:ignorable buffer limit))
+  index)
+
+(cl:defmethod pb:merge-from-array ((self version-dummy) buffer start limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index start limit))
+  (cl:do ((index start index))
+      ((cl:>= index limit) index)
+    (cl:declare (cl:type com.google.base:vector-index index))
+    (cl:multiple-value-bind (tag new-index)
+        (varint:parse-uint32-carefully buffer index limit)
+      (cl:setf index new-index)
+      (cl:case tag
+        (cl:t
+          (cl:when (cl:= (cl:logand tag 7) 4)
+            (cl:return-from pb:merge-from-array index))
+          (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
+
+(cl:defmethod pb:merge-from-message ((self version-dummy) (from version-dummy))
+)
+
+
+(cl:defclass query-assoc-pair (pb:protocol-buffer)
+  (
+  (key
+   :accessor key
+   :initform (pb:string-field "")
+   :type pb::%sf%)
+  (val
+   :writer (cl:setf val)
+   :initform cl:nil
+   :type (cl:or cl:null cl-rethinkdb-proto::term))
+  (%has-bits%
+   :accessor %has-bits%
+   :initform 0
+   :type (cl:unsigned-byte 2))
+  (pb::%cached-size%
+   :initform 0
+   :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
+  ))
+
+(cl:export 'query-assoc-pair)
+
+(cl:export 'key)
+
+
+(cl:defmethod (cl:setf key) :after (x (self query-assoc-pair))
+  (cl:declare (cl:ignore x))
+  (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
+
+(cl:unless (cl:fboundp 'has-key)
+  (cl:defgeneric has-key (proto)))
+(cl:defmethod has-key ((self query-assoc-pair))
+  (cl:logbitp 0 (cl:slot-value self '%has-bits%)))
+(cl:export 'has-key)
+
+(cl:unless (cl:fboundp 'clear-key)
+  (cl:defgeneric clear-key (proto)))
+(cl:defmethod clear-key ((self query-assoc-pair))
+  (cl:setf (cl:slot-value self 'key) (pb:string-field ""))
+  (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
+  (cl:values))
+(cl:export 'clear-key)
+
+(cl:export 'val)
+
+(cl:unless (cl:fboundp 'val)
+  (cl:defgeneric val (proto)))
+(cl:defmethod val ((self query-assoc-pair))
+  (cl:let ((result (cl:slot-value self 'val)))
+    (cl:when (cl:null result)
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::term))
+      (cl:setf (cl:slot-value self 'val) result))
+      (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
+    result))
+
+(cl:defmethod (cl:setf val) :after (x (self query-assoc-pair))
+  (cl:declare (cl:ignore x))
+  (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
+
+(cl:unless (cl:fboundp 'has-val)
+  (cl:defgeneric has-val (proto)))
+(cl:defmethod has-val ((self query-assoc-pair))
+  (cl:logbitp 1 (cl:slot-value self '%has-bits%)))
+(cl:export 'has-val)
+
+(cl:unless (cl:fboundp 'clear-val)
+  (cl:defgeneric clear-val (proto)))
+(cl:defmethod clear-val ((self query-assoc-pair))
+  (cl:setf (cl:slot-value self 'val) cl:nil)
+  (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 0)
+  (cl:values))
+(cl:export 'clear-val)
+
+
 
 (cl:defclass query (pb:protocol-buffer)
   (
   (type
    :accessor type
-   :initform protocol-buffer::+query-query-type-start+
-   :type protocol-buffer::query-query-type)
+   :initform cl-rethinkdb-proto::+query-query-type-start+
+   :type cl-rethinkdb-proto::query-query-type)
   (query
    :writer (cl:setf query)
    :initform cl:nil
-   :type (cl:or cl:null protocol-buffer::term))
+   :type (cl:or cl:null cl-rethinkdb-proto::term))
   (token
    :accessor token
    :initform 0
-   :type (cl:unsigned-byte 64))
+   :type (cl:signed-byte 64))
   (noreply
    :accessor noreply
    :initform cl:nil
    :type cl:boolean)
+  (global-optargs
+   :accessor global-optargs
+   :initform (cl:make-array
+              0
+              :element-type 'cl-rethinkdb-proto::query-assoc-pair
+              :fill-pointer 0 :adjustable cl:t)
+   :type (cl:vector cl-rethinkdb-proto::query-assoc-pair))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
-   :type (cl:unsigned-byte 4))
+   :type (cl:unsigned-byte 5))
   (pb::%cached-size%
    :initform 0
    :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
@@ -270,7 +414,7 @@
 (cl:unless (cl:fboundp 'clear-type)
   (cl:defgeneric clear-type (proto)))
 (cl:defmethod clear-type ((self query))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+query-query-type-start+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+query-query-type-start+)
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-type)
@@ -282,7 +426,7 @@
 (cl:defmethod query ((self query))
   (cl:let ((result (cl:slot-value self 'query)))
     (cl:when (cl:null result)
-      (cl:setf result (cl:make-instance 'protocol-buffer::term))
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::term))
       (cl:setf (cl:slot-value self 'query) result))
       (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
     result))
@@ -347,6 +491,121 @@
   (cl:values))
 (cl:export 'clear-noreply)
 
+(cl:export 'global-optargs)
+
+(cl:unless (cl:fboundp 'clear-global-optargs)
+  (cl:defgeneric clear-global-optargs (proto)))
+(cl:defmethod clear-global-optargs ((self query))
+  (cl:setf (cl:slot-value self 'global-optargs)
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::query-assoc-pair
+            :fill-pointer 0 :adjustable cl:t))
+  (cl:values))
+(cl:export 'clear-global-optargs)
+
+
+(cl:defmethod cl:print-object ((self query-assoc-pair) stream)
+  (cl:pprint-logical-block (stream cl:nil)
+    (cl:print-unreadable-object (self stream :type cl:t :identity cl:t)
+      (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_key: ~s" (key self)))
+      (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_val: ~s" (val self)))
+      ))
+  (cl:values))
+
+(cl:defmethod pb:clear ((self query-assoc-pair))
+  (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+    (cl:setf (cl:slot-value self 'key) (pb:string-field "")))
+  (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+    (cl:setf (cl:slot-value self 'val) cl:nil))
+  (cl:setf (cl:slot-value self '%has-bits%) 0)
+  (cl:values))
+
+(cl:defmethod pb:is-initialized ((self query-assoc-pair))
+  (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+    (cl:unless (pb:is-initialized (cl:slot-value self 'val))
+      (cl:return-from pb:is-initialized cl:nil)))
+  cl:t)
+
+(cl:defmethod pb:octet-size ((self query-assoc-pair))
+  (cl:let ((size 0))
+    ;; optional string key = 1;
+    (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+      (cl:incf size 1)
+      (cl:incf size (cl:let ((s (pb::%utf8-string-length% (cl:slot-value self 'key))))
+        (cl:+ s (varint:length32 s)))))
+    ;; optional .Term val = 2;
+    (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+      (cl:let ((s (pb:octet-size (cl:slot-value self 'val))))
+        (cl:incf size (cl:+ 1 s (varint:length32 s)))))
+    (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
+    size))
+
+(cl:defmethod pb:serialize ((self query-assoc-pair) buffer index limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index index limit)
+              (cl:ignorable buffer limit))
+  ;; optional string key = 1;
+  (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 10))
+    (cl:setf index (wire-format:write-octets-carefully buffer index limit (cl:slot-value (cl:slot-value self 'key) 'pb::%octets%))))
+  ;; optional .Term val = 2;
+  (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 18))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'val) 'pb::%cached-size%)))
+    (cl:setf index (pb:serialize (cl:slot-value self 'val) buffer index limit)))
+  index)
+
+(cl:defmethod pb:merge-from-array ((self query-assoc-pair) buffer start limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index start limit))
+  (cl:do ((index start index))
+      ((cl:>= index limit) index)
+    (cl:declare (cl:type com.google.base:vector-index index))
+    (cl:multiple-value-bind (tag new-index)
+        (varint:parse-uint32-carefully buffer index limit)
+      (cl:setf index new-index)
+      (cl:case tag
+        ;; optional string key = 1;
+        ((10)
+          (cl:multiple-value-bind (value new-index)
+              (wire-format:read-octets-carefully buffer index limit)
+            (cl:setf (cl:slot-value self 'key) (pb:string-field value))
+            (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
+            (cl:setf index new-index)))
+        ;; optional .Term val = 2;
+        ((18)
+          (cl:multiple-value-bind (length new-index)
+              (varint:parse-uint31-carefully buffer index limit)
+            (cl:when (cl:> (cl:+ new-index length) limit)
+              (cl:error "buffer overflow"))
+            (cl:let ((message (cl:slot-value self 'val)))
+              (cl:when (cl:null message)
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
+                (cl:setf (cl:slot-value self 'val) message)
+                (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
+              (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
+              (cl:when (cl:not (cl:= index (cl:+ new-index length)))
+                (cl:error "buffer overflow")))))
+        (cl:t
+          (cl:when (cl:= (cl:logand tag 7) 4)
+            (cl:return-from pb:merge-from-array index))
+          (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
+
+(cl:defmethod pb:merge-from-message ((self query-assoc-pair) (from query-assoc-pair))
+  (cl:when (cl:logbitp 0 (cl:slot-value from '%has-bits%))
+    (cl:setf (cl:slot-value self 'key) (cl:slot-value from 'key))
+    (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
+  (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
+    (cl:let ((message (cl:slot-value self 'val)))
+      (cl:when (cl:null message)
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
+        (cl:setf (cl:slot-value self 'val) message)
+        (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
+     (pb:merge-from-message message (cl:slot-value from 'val))))
+)
+
+
 
 (cl:defmethod cl:print-object ((self query) stream)
   (cl:pprint-logical-block (stream cl:nil)
@@ -359,31 +618,36 @@
         (cl:format stream " ~_token: ~s" (token self)))
       (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
         (cl:format stream " ~_noreply: ~s" (noreply self)))
+      (cl:format stream " ~_global-optargs: ~s" (global-optargs self))
       ))
   (cl:values))
 
 (cl:defmethod pb:clear ((self query))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+query-query-type-start+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+query-query-type-start+)
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf (cl:slot-value self 'query) cl:nil))
   (cl:setf (cl:slot-value self 'token) 0)
   (cl:setf (cl:slot-value self 'noreply) cl:nil)
+  (cl:setf (cl:slot-value self 'global-optargs)
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::query-assoc-pair
+            :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self '%has-bits%) 0)
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self query))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b0101)
-                  #b0101)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:unless (pb:is-initialized (cl:slot-value self 'query))
       (cl:return-from pb:is-initialized cl:nil)))
+  (cl:let* ((x (cl:slot-value self 'global-optargs))
+            (length (cl:length x)))
+    (cl:dotimes (i length)
+      (cl:unless (pb:is-initialized (cl:aref x i))
+        (cl:return-from pb:is-initialized cl:nil))))
   cl:t)
 
 (cl:defmethod pb:octet-size ((self query))
   (cl:let ((size 0))
-    ;; required .Query.QueryType type = 1;
+    ;; optional .Query.QueryType type = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
@@ -391,14 +655,21 @@
     (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
       (cl:let ((s (pb:octet-size (cl:slot-value self 'query))))
         (cl:incf size (cl:+ 1 s (varint:length32 s)))))
-    ;; required uint64 token = 3;
+    ;; optional int64 token = 3;
     (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
       (cl:incf size
-        (cl:+ 1 (varint:length64 (cl:slot-value self 'token)))))
+        (cl:+ 1 (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token))))))
     ;; optional bool noreply = 4 [default = false];
     (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
       (cl:incf size
         (cl:+ 1 1)))
+    ;; repeated .Query.AssocPair global_optargs = 6;
+    (cl:let* ((v (cl:slot-value self 'global-optargs))
+              (length (cl:length v)))
+      (cl:incf size (cl:* 1 length))
+      (cl:dotimes (i length)
+        (cl:let ((s (pb:octet-size (cl:aref v i))))
+          (cl:incf size (cl:+ s (varint:length32 s))))))
     (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
     size))
 
@@ -406,7 +677,7 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required .Query.QueryType type = 1;
+  ;; optional .Query.QueryType type = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
     (cl:setf index
@@ -417,14 +688,21 @@
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 18))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'query) 'pb::%cached-size%)))
     (cl:setf index (pb:serialize (cl:slot-value self 'query) buffer index limit)))
-  ;; required uint64 token = 3;
+  ;; optional int64 token = 3;
   (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 24))
-    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:slot-value self 'token))))
+    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token)))))
   ;; optional bool noreply = 4 [default = false];
   (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 32))
     (cl:setf index (wire-format:write-boolean-carefully buffer index limit (cl:slot-value self 'noreply))))
+  ;; repeated .Query.AssocPair global_optargs = 6;
+  (cl:let* ((v (cl:slot-value self 'global-optargs))
+            (length (cl:length v)))
+    (cl:loop for i from 0 below length do
+       (cl:setf index (varint:encode-uint32-carefully buffer index limit 50))
+       (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:aref v i) 'pb::%cached-size%)))
+       (cl:setf index (pb:serialize (cl:aref v i) buffer index limit))))
   index)
 
 (cl:defmethod pb:merge-from-array ((self query) buffer start limit)
@@ -437,7 +715,7 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required .Query.QueryType type = 1;
+        ;; optional .Query.QueryType type = 1;
         ((8)
           (cl:multiple-value-bind (value new-index)
               (varint:parse-int32-carefully buffer index limit)
@@ -453,16 +731,16 @@
               (cl:error "buffer overflow"))
             (cl:let ((message (cl:slot-value self 'query)))
               (cl:when (cl:null message)
-                (cl:setf message (cl:make-instance 'protocol-buffer::term))
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
                 (cl:setf (cl:slot-value self 'query) message)
                 (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow")))))
-        ;; required uint64 token = 3;
+        ;; optional int64 token = 3;
         ((24)
           (cl:multiple-value-bind (value new-index)
-              (varint:parse-uint64-carefully buffer index limit)
+              (varint:parse-int64-carefully buffer index limit)
             (cl:setf (cl:slot-value self 'token) value)
             (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
@@ -473,19 +751,35 @@
             (cl:setf (cl:slot-value self 'noreply) value)
             (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
+        ;; repeated .Query.AssocPair global_optargs = 6;
+        ((50)
+          (cl:multiple-value-bind (length new-index)
+              (varint:parse-uint31-carefully buffer index limit)
+            (cl:when (cl:> (cl:+ new-index length) limit)
+              (cl:error "buffer overflow"))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::query-assoc-pair)))
+              (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
+              (cl:when (cl:not (cl:= index (cl:+ new-index length)))
+                (cl:error "buffer overflow"))
+              (cl:vector-push-extend message (cl:slot-value self 'global-optargs)))))
         (cl:t
           (cl:when (cl:= (cl:logand tag 7) 4)
             (cl:return-from pb:merge-from-array index))
           (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
 
 (cl:defmethod pb:merge-from-message ((self query) (from query))
+  (cl:let* ((v (cl:slot-value self 'global-optargs))
+            (vf (cl:slot-value from 'global-optargs))
+            (length (cl:length vf)))
+    (cl:loop for i from 0 below length do
+      (cl:vector-push-extend (cl:aref vf i) v)))
   (cl:when (cl:logbitp 0 (cl:slot-value from '%has-bits%))
     (cl:setf (cl:slot-value self 'type) (cl:slot-value from 'type))
     (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
   (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
     (cl:let ((message (cl:slot-value self 'query)))
       (cl:when (cl:null message)
-        (cl:setf message (cl:make-instance 'protocol-buffer::term))
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
         (cl:setf (cl:slot-value self 'query) message)
         (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
      (pb:merge-from-message message (cl:slot-value from 'query))))
@@ -498,16 +792,16 @@
 )
 
 
-(cl:defclass response-frame (pb:protocol-buffer)
+(cl:defclass frame (pb:protocol-buffer)
   (
   (type
    :accessor type
-   :initform protocol-buffer::+response-frame-frame-type-pos+
-   :type protocol-buffer::response-frame-frame-type)
+   :initform cl-rethinkdb-proto::+frame-frame-type-pos+
+   :type cl-rethinkdb-proto::frame-frame-type)
   (pos
    :accessor pos
    :initform 0
-   :type (cl:unsigned-byte 64))
+   :type (cl:signed-byte 64))
   (opt
    :accessor opt
    :initform (pb:string-field "")
@@ -521,25 +815,25 @@
    :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
   ))
 
-(cl:export 'response-frame)
+(cl:export 'frame)
 
 (cl:export 'type)
 
 
-(cl:defmethod (cl:setf type) :after (x (self response-frame))
+(cl:defmethod (cl:setf type) :after (x (self frame))
   (cl:declare (cl:ignore x))
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
 
 (cl:unless (cl:fboundp 'has-type)
   (cl:defgeneric has-type (proto)))
-(cl:defmethod has-type ((self response-frame))
+(cl:defmethod has-type ((self frame))
   (cl:logbitp 0 (cl:slot-value self '%has-bits%)))
 (cl:export 'has-type)
 
 (cl:unless (cl:fboundp 'clear-type)
   (cl:defgeneric clear-type (proto)))
-(cl:defmethod clear-type ((self response-frame))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+response-frame-frame-type-pos+)
+(cl:defmethod clear-type ((self frame))
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+frame-frame-type-pos+)
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-type)
@@ -547,19 +841,19 @@
 (cl:export 'pos)
 
 
-(cl:defmethod (cl:setf pos) :after (x (self response-frame))
+(cl:defmethod (cl:setf pos) :after (x (self frame))
   (cl:declare (cl:ignore x))
   (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
 
 (cl:unless (cl:fboundp 'has-pos)
   (cl:defgeneric has-pos (proto)))
-(cl:defmethod has-pos ((self response-frame))
+(cl:defmethod has-pos ((self frame))
   (cl:logbitp 1 (cl:slot-value self '%has-bits%)))
 (cl:export 'has-pos)
 
 (cl:unless (cl:fboundp 'clear-pos)
   (cl:defgeneric clear-pos (proto)))
-(cl:defmethod clear-pos ((self response-frame))
+(cl:defmethod clear-pos ((self frame))
   (cl:setf (cl:slot-value self 'pos) 0)
   (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
@@ -568,50 +862,266 @@
 (cl:export 'opt)
 
 
-(cl:defmethod (cl:setf opt) :after (x (self response-frame))
+(cl:defmethod (cl:setf opt) :after (x (self frame))
   (cl:declare (cl:ignore x))
   (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1))
 
 (cl:unless (cl:fboundp 'has-opt)
   (cl:defgeneric has-opt (proto)))
-(cl:defmethod has-opt ((self response-frame))
+(cl:defmethod has-opt ((self frame))
   (cl:logbitp 2 (cl:slot-value self '%has-bits%)))
 (cl:export 'has-opt)
 
 (cl:unless (cl:fboundp 'clear-opt)
   (cl:defgeneric clear-opt (proto)))
-(cl:defmethod clear-opt ((self response-frame))
+(cl:defmethod clear-opt ((self frame))
   (cl:setf (cl:slot-value self 'opt) (pb:string-field ""))
   (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-opt)
 
 
+(cl:defmethod cl:print-object ((self frame) stream)
+  (cl:pprint-logical-block (stream cl:nil)
+    (cl:print-unreadable-object (self stream :type cl:t :identity cl:t)
+      (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_type: ~s" (type self)))
+      (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_pos: ~s" (pos self)))
+      (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_opt: ~s" (opt self)))
+      ))
+  (cl:values))
+
+(cl:defmethod pb:clear ((self frame))
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+frame-frame-type-pos+)
+  (cl:setf (cl:slot-value self 'pos) 0)
+  (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
+    (cl:setf (cl:slot-value self 'opt) (pb:string-field "")))
+  (cl:setf (cl:slot-value self '%has-bits%) 0)
+  (cl:values))
+
+(cl:defmethod pb:is-initialized ((self frame))
+  cl:t)
+
+(cl:defmethod pb:octet-size ((self frame))
+  (cl:let ((size 0))
+    ;; optional .Frame.FrameType type = 1;
+    (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+      (cl:incf size 1)
+      (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
+    ;; optional int64 pos = 2;
+    (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+      (cl:incf size
+        (cl:+ 1 (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'pos))))))
+    ;; optional string opt = 3;
+    (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
+      (cl:incf size 1)
+      (cl:incf size (cl:let ((s (pb::%utf8-string-length% (cl:slot-value self 'opt))))
+        (cl:+ s (varint:length32 s)))))
+    (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
+    size))
+
+(cl:defmethod pb:serialize ((self frame) buffer index limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index index limit)
+              (cl:ignorable buffer limit))
+  ;; optional .Frame.FrameType type = 1;
+  (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
+    (cl:setf index
+     (varint:encode-uint64-carefully buffer index limit
+      (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
+  ;; optional int64 pos = 2;
+  (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 16))
+    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:ldb (cl:byte 64 0) (cl:slot-value self 'pos)))))
+  ;; optional string opt = 3;
+  (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 26))
+    (cl:setf index (wire-format:write-octets-carefully buffer index limit (cl:slot-value (cl:slot-value self 'opt) 'pb::%octets%))))
+  index)
+
+(cl:defmethod pb:merge-from-array ((self frame) buffer start limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index start limit))
+  (cl:do ((index start index))
+      ((cl:>= index limit) index)
+    (cl:declare (cl:type com.google.base:vector-index index))
+    (cl:multiple-value-bind (tag new-index)
+        (varint:parse-uint32-carefully buffer index limit)
+      (cl:setf index new-index)
+      (cl:case tag
+        ;; optional .Frame.FrameType type = 1;
+        ((8)
+          (cl:multiple-value-bind (value new-index)
+              (varint:parse-int32-carefully buffer index limit)
+            ;; XXXXX: when valid, set field, else add to unknown fields
+            (cl:setf (cl:slot-value self 'type) value)
+            (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
+            (cl:setf index new-index)))
+        ;; optional int64 pos = 2;
+        ((16)
+          (cl:multiple-value-bind (value new-index)
+              (varint:parse-int64-carefully buffer index limit)
+            (cl:setf (cl:slot-value self 'pos) value)
+            (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
+            (cl:setf index new-index)))
+        ;; optional string opt = 3;
+        ((26)
+          (cl:multiple-value-bind (value new-index)
+              (wire-format:read-octets-carefully buffer index limit)
+            (cl:setf (cl:slot-value self 'opt) (pb:string-field value))
+            (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1)
+            (cl:setf index new-index)))
+        (cl:t
+          (cl:when (cl:= (cl:logand tag 7) 4)
+            (cl:return-from pb:merge-from-array index))
+          (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
+
+(cl:defmethod pb:merge-from-message ((self frame) (from frame))
+  (cl:when (cl:logbitp 0 (cl:slot-value from '%has-bits%))
+    (cl:setf (cl:slot-value self 'type) (cl:slot-value from 'type))
+    (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
+  (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
+    (cl:setf (cl:slot-value self 'pos) (cl:slot-value from 'pos))
+    (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
+  (cl:when (cl:logbitp 2 (cl:slot-value from '%has-bits%))
+    (cl:setf (cl:slot-value self 'opt) (cl:slot-value from 'opt))
+    (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1))
+)
+
+
+(cl:defclass backtrace (pb:protocol-buffer)
+  (
+  (frames
+   :accessor frames
+   :initform (cl:make-array
+              0
+              :element-type 'cl-rethinkdb-proto::frame
+              :fill-pointer 0 :adjustable cl:t)
+   :type (cl:vector cl-rethinkdb-proto::frame))
+  (%has-bits%
+   :accessor %has-bits%
+   :initform 0
+   :type (cl:unsigned-byte 1))
+  (pb::%cached-size%
+   :initform 0
+   :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
+  ))
+
+(cl:export 'backtrace)
+
+(cl:export 'frames)
+
+(cl:unless (cl:fboundp 'clear-frames)
+  (cl:defgeneric clear-frames (proto)))
+(cl:defmethod clear-frames ((self backtrace))
+  (cl:setf (cl:slot-value self 'frames)
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::frame
+            :fill-pointer 0 :adjustable cl:t))
+  (cl:values))
+(cl:export 'clear-frames)
+
+
+(cl:defmethod cl:print-object ((self backtrace) stream)
+  (cl:pprint-logical-block (stream cl:nil)
+    (cl:print-unreadable-object (self stream :type cl:t :identity cl:t)
+      (cl:format stream " ~_frames: ~s" (frames self))
+      ))
+  (cl:values))
+
+(cl:defmethod pb:clear ((self backtrace))
+  (cl:setf (cl:slot-value self 'frames)
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::frame
+            :fill-pointer 0 :adjustable cl:t))
+  (cl:setf (cl:slot-value self '%has-bits%) 0)
+  (cl:values))
+
+(cl:defmethod pb:is-initialized ((self backtrace))
+  cl:t)
+
+(cl:defmethod pb:octet-size ((self backtrace))
+  (cl:let ((size 0))
+    ;; repeated .Frame frames = 1;
+    (cl:let* ((v (cl:slot-value self 'frames))
+              (length (cl:length v)))
+      (cl:incf size (cl:* 1 length))
+      (cl:dotimes (i length)
+        (cl:let ((s (pb:octet-size (cl:aref v i))))
+          (cl:incf size (cl:+ s (varint:length32 s))))))
+    (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
+    size))
+
+(cl:defmethod pb:serialize ((self backtrace) buffer index limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index index limit)
+              (cl:ignorable buffer limit))
+  ;; repeated .Frame frames = 1;
+  (cl:let* ((v (cl:slot-value self 'frames))
+            (length (cl:length v)))
+    (cl:loop for i from 0 below length do
+       (cl:setf index (varint:encode-uint32-carefully buffer index limit 10))
+       (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:aref v i) 'pb::%cached-size%)))
+       (cl:setf index (pb:serialize (cl:aref v i) buffer index limit))))
+  index)
+
+(cl:defmethod pb:merge-from-array ((self backtrace) buffer start limit)
+  (cl:declare (cl:type com.google.base:octet-vector buffer)
+              (cl:type com.google.base:vector-index start limit))
+  (cl:do ((index start index))
+      ((cl:>= index limit) index)
+    (cl:declare (cl:type com.google.base:vector-index index))
+    (cl:multiple-value-bind (tag new-index)
+        (varint:parse-uint32-carefully buffer index limit)
+      (cl:setf index new-index)
+      (cl:case tag
+        ;; repeated .Frame frames = 1;
+        ((10)
+          (cl:multiple-value-bind (length new-index)
+              (varint:parse-uint31-carefully buffer index limit)
+            (cl:when (cl:> (cl:+ new-index length) limit)
+              (cl:error "buffer overflow"))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::frame)))
+              (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
+              (cl:when (cl:not (cl:= index (cl:+ new-index length)))
+                (cl:error "buffer overflow"))
+              (cl:vector-push-extend message (cl:slot-value self 'frames)))))
+        (cl:t
+          (cl:when (cl:= (cl:logand tag 7) 4)
+            (cl:return-from pb:merge-from-array index))
+          (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
+
+(cl:defmethod pb:merge-from-message ((self backtrace) (from backtrace))
+  (cl:let* ((v (cl:slot-value self 'frames))
+            (vf (cl:slot-value from 'frames))
+            (length (cl:length vf)))
+    (cl:loop for i from 0 below length do
+      (cl:vector-push-extend (cl:aref vf i) v)))
+)
+
 
 (cl:defclass response (pb:protocol-buffer)
   (
   (type
    :accessor type
-   :initform protocol-buffer::+response-response-type-success-atom+
-   :type protocol-buffer::response-response-type)
+   :initform cl-rethinkdb-proto::+response-response-type-success-atom+
+   :type cl-rethinkdb-proto::response-response-type)
   (token
    :accessor token
    :initform 0
-   :type (cl:unsigned-byte 64))
+   :type (cl:signed-byte 64))
   (response
    :accessor response
    :initform (cl:make-array
               0
-              :element-type 'protocol-buffer::datum
+              :element-type 'cl-rethinkdb-proto::datum
               :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::datum))
+   :type (cl:vector cl-rethinkdb-proto::datum))
   (backtrace
-   :accessor backtrace
-   :initform (cl:make-array
-              0
-              :element-type 'protocol-buffer::response-frame
-              :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::response-frame))
+   :writer (cl:setf backtrace)
+   :initform cl:nil
+   :type (cl:or cl:null cl-rethinkdb-proto::backtrace))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
@@ -639,7 +1149,7 @@
 (cl:unless (cl:fboundp 'clear-type)
   (cl:defgeneric clear-type (proto)))
 (cl:defmethod clear-type ((self response))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+response-response-type-success-atom+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+response-response-type-success-atom+)
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-type)
@@ -671,137 +1181,40 @@
   (cl:defgeneric clear-response (proto)))
 (cl:defmethod clear-response ((self response))
   (cl:setf (cl:slot-value self 'response)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum
             :fill-pointer 0 :adjustable cl:t))
   (cl:values))
 (cl:export 'clear-response)
 
 (cl:export 'backtrace)
 
+(cl:unless (cl:fboundp 'backtrace)
+  (cl:defgeneric backtrace (proto)))
+(cl:defmethod backtrace ((self response))
+  (cl:let ((result (cl:slot-value self 'backtrace)))
+    (cl:when (cl:null result)
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::backtrace))
+      (cl:setf (cl:slot-value self 'backtrace) result))
+      (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1)
+    result))
+
+(cl:defmethod (cl:setf backtrace) :after (x (self response))
+  (cl:declare (cl:ignore x))
+  (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
+
+(cl:unless (cl:fboundp 'has-backtrace)
+  (cl:defgeneric has-backtrace (proto)))
+(cl:defmethod has-backtrace ((self response))
+  (cl:logbitp 3 (cl:slot-value self '%has-bits%)))
+(cl:export 'has-backtrace)
+
 (cl:unless (cl:fboundp 'clear-backtrace)
   (cl:defgeneric clear-backtrace (proto)))
 (cl:defmethod clear-backtrace ((self response))
-  (cl:setf (cl:slot-value self 'backtrace)
-           (cl:make-array 0 :element-type 'protocol-buffer::response-frame
-            :fill-pointer 0 :adjustable cl:t))
+  (cl:setf (cl:slot-value self 'backtrace) cl:nil)
+  (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-backtrace)
-
-
-(cl:defmethod cl:print-object ((self response-frame) stream)
-  (cl:pprint-logical-block (stream cl:nil)
-    (cl:print-unreadable-object (self stream :type cl:t :identity cl:t)
-      (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
-        (cl:format stream " ~_type: ~s" (type self)))
-      (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
-        (cl:format stream " ~_pos: ~s" (pos self)))
-      (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
-        (cl:format stream " ~_opt: ~s" (opt self)))
-      ))
-  (cl:values))
-
-(cl:defmethod pb:clear ((self response-frame))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+response-frame-frame-type-pos+)
-  (cl:setf (cl:slot-value self 'pos) 0)
-  (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
-    (cl:setf (cl:slot-value self 'opt) (pb:string-field "")))
-  (cl:setf (cl:slot-value self '%has-bits%) 0)
-  (cl:values))
-
-(cl:defmethod pb:is-initialized ((self response-frame))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b001)
-                  #b001)
-    (cl:return-from pb:is-initialized cl:nil))
-  cl:t)
-
-(cl:defmethod pb:octet-size ((self response-frame))
-  (cl:let ((size 0))
-    ;; required .Response.Frame.FrameType type = 1;
-    (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
-      (cl:incf size 1)
-      (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
-    ;; optional uint64 pos = 2;
-    (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
-      (cl:incf size
-        (cl:+ 1 (varint:length64 (cl:slot-value self 'pos)))))
-    ;; optional string opt = 3;
-    (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
-      (cl:incf size 1)
-      (cl:incf size (cl:let ((s (pb::%utf8-string-length% (cl:slot-value self 'opt))))
-        (cl:+ s (varint:length32 s)))))
-    (cl:setf (cl:slot-value self 'pb::%cached-size%) size)
-    size))
-
-(cl:defmethod pb:serialize ((self response-frame) buffer index limit)
-  (cl:declare (cl:type com.google.base:octet-vector buffer)
-              (cl:type com.google.base:vector-index index limit)
-              (cl:ignorable buffer limit))
-  ;; required .Response.Frame.FrameType type = 1;
-  (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
-    (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
-    (cl:setf index
-     (varint:encode-uint64-carefully buffer index limit
-      (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
-  ;; optional uint64 pos = 2;
-  (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
-    (cl:setf index (varint:encode-uint32-carefully buffer index limit 16))
-    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:slot-value self 'pos))))
-  ;; optional string opt = 3;
-  (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
-    (cl:setf index (varint:encode-uint32-carefully buffer index limit 26))
-    (cl:setf index (wire-format:write-octets-carefully buffer index limit (cl:slot-value (cl:slot-value self 'opt) 'pb::%octets%))))
-  index)
-
-(cl:defmethod pb:merge-from-array ((self response-frame) buffer start limit)
-  (cl:declare (cl:type com.google.base:octet-vector buffer)
-              (cl:type com.google.base:vector-index start limit))
-  (cl:do ((index start index))
-      ((cl:>= index limit) index)
-    (cl:declare (cl:type com.google.base:vector-index index))
-    (cl:multiple-value-bind (tag new-index)
-        (varint:parse-uint32-carefully buffer index limit)
-      (cl:setf index new-index)
-      (cl:case tag
-        ;; required .Response.Frame.FrameType type = 1;
-        ((8)
-          (cl:multiple-value-bind (value new-index)
-              (varint:parse-int32-carefully buffer index limit)
-            ;; XXXXX: when valid, set field, else add to unknown fields
-            (cl:setf (cl:slot-value self 'type) value)
-            (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
-            (cl:setf index new-index)))
-        ;; optional uint64 pos = 2;
-        ((16)
-          (cl:multiple-value-bind (value new-index)
-              (varint:parse-uint64-carefully buffer index limit)
-            (cl:setf (cl:slot-value self 'pos) value)
-            (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
-            (cl:setf index new-index)))
-        ;; optional string opt = 3;
-        ((26)
-          (cl:multiple-value-bind (value new-index)
-              (wire-format:read-octets-carefully buffer index limit)
-            (cl:setf (cl:slot-value self 'opt) (pb:string-field value))
-            (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1)
-            (cl:setf index new-index)))
-        (cl:t
-          (cl:when (cl:= (cl:logand tag 7) 4)
-            (cl:return-from pb:merge-from-array index))
-          (cl:setf index (wire-format:skip-field buffer index limit tag)))))))
-
-(cl:defmethod pb:merge-from-message ((self response-frame) (from response-frame))
-  (cl:when (cl:logbitp 0 (cl:slot-value from '%has-bits%))
-    (cl:setf (cl:slot-value self 'type) (cl:slot-value from 'type))
-    (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
-  (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
-    (cl:setf (cl:slot-value self 'pos) (cl:slot-value from 'pos))
-    (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
-  (cl:when (cl:logbitp 2 (cl:slot-value from '%has-bits%))
-    (cl:setf (cl:slot-value self 'opt) (cl:slot-value from 'opt))
-    (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1))
-)
-
 
 
 (cl:defmethod cl:print-object ((self response) stream)
@@ -812,33 +1225,24 @@
       (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
         (cl:format stream " ~_token: ~s" (token self)))
       (cl:format stream " ~_response: ~s" (response self))
-      (cl:format stream " ~_backtrace: ~s" (backtrace self))
+      (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_backtrace: ~s" (backtrace self)))
       ))
   (cl:values))
 
 (cl:defmethod pb:clear ((self response))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+response-response-type-success-atom+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+response-response-type-success-atom+)
   (cl:setf (cl:slot-value self 'token) 0)
+  (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
+    (cl:setf (cl:slot-value self 'backtrace) cl:nil))
   (cl:setf (cl:slot-value self 'response)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum
-            :fill-pointer 0 :adjustable cl:t))
-  (cl:setf (cl:slot-value self 'backtrace)
-           (cl:make-array 0 :element-type 'protocol-buffer::response-frame
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum
             :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self '%has-bits%) 0)
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self response))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b0011)
-                  #b0011)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:let* ((x (cl:slot-value self 'response))
-            (length (cl:length x)))
-    (cl:dotimes (i length)
-      (cl:unless (pb:is-initialized (cl:aref x i))
-        (cl:return-from pb:is-initialized cl:nil))))
-  (cl:let* ((x (cl:slot-value self 'backtrace))
             (length (cl:length x)))
     (cl:dotimes (i length)
       (cl:unless (pb:is-initialized (cl:aref x i))
@@ -847,23 +1251,20 @@
 
 (cl:defmethod pb:octet-size ((self response))
   (cl:let ((size 0))
-    ;; required .Response.ResponseType type = 1;
+    ;; optional .Response.ResponseType type = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
-    ;; required uint64 token = 2;
+    ;; optional int64 token = 2;
     (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
       (cl:incf size
-        (cl:+ 1 (varint:length64 (cl:slot-value self 'token)))))
+        (cl:+ 1 (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token))))))
+    ;; optional .Backtrace backtrace = 4;
+    (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
+      (cl:let ((s (pb:octet-size (cl:slot-value self 'backtrace))))
+        (cl:incf size (cl:+ 1 s (varint:length32 s)))))
     ;; repeated .Datum response = 3;
     (cl:let* ((v (cl:slot-value self 'response))
-              (length (cl:length v)))
-      (cl:incf size (cl:* 1 length))
-      (cl:dotimes (i length)
-        (cl:let ((s (pb:octet-size (cl:aref v i))))
-          (cl:incf size (cl:+ s (varint:length32 s))))))
-    ;; repeated .Response.Frame backtrace = 4;
-    (cl:let* ((v (cl:slot-value self 'backtrace))
               (length (cl:length v)))
       (cl:incf size (cl:* 1 length))
       (cl:dotimes (i length)
@@ -876,16 +1277,16 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required .Response.ResponseType type = 1;
+  ;; optional .Response.ResponseType type = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
     (cl:setf index
      (varint:encode-uint64-carefully buffer index limit
       (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
-  ;; required uint64 token = 2;
+  ;; optional int64 token = 2;
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 16))
-    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:slot-value self 'token))))
+    (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token)))))
   ;; repeated .Datum response = 3;
   (cl:let* ((v (cl:slot-value self 'response))
             (length (cl:length v)))
@@ -893,13 +1294,11 @@
        (cl:setf index (varint:encode-uint32-carefully buffer index limit 26))
        (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:aref v i) 'pb::%cached-size%)))
        (cl:setf index (pb:serialize (cl:aref v i) buffer index limit))))
-  ;; repeated .Response.Frame backtrace = 4;
-  (cl:let* ((v (cl:slot-value self 'backtrace))
-            (length (cl:length v)))
-    (cl:loop for i from 0 below length do
-       (cl:setf index (varint:encode-uint32-carefully buffer index limit 34))
-       (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:aref v i) 'pb::%cached-size%)))
-       (cl:setf index (pb:serialize (cl:aref v i) buffer index limit))))
+  ;; optional .Backtrace backtrace = 4;
+  (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 34))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'backtrace) 'pb::%cached-size%)))
+    (cl:setf index (pb:serialize (cl:slot-value self 'backtrace) buffer index limit)))
   index)
 
 (cl:defmethod pb:merge-from-array ((self response) buffer start limit)
@@ -912,7 +1311,7 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required .Response.ResponseType type = 1;
+        ;; optional .Response.ResponseType type = 1;
         ((8)
           (cl:multiple-value-bind (value new-index)
               (varint:parse-int32-carefully buffer index limit)
@@ -920,10 +1319,10 @@
             (cl:setf (cl:slot-value self 'type) value)
             (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
-        ;; required uint64 token = 2;
+        ;; optional int64 token = 2;
         ((16)
           (cl:multiple-value-bind (value new-index)
-              (varint:parse-uint64-carefully buffer index limit)
+              (varint:parse-int64-carefully buffer index limit)
             (cl:setf (cl:slot-value self 'token) value)
             (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
@@ -933,22 +1332,25 @@
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::datum)))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::datum)))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow"))
               (cl:vector-push-extend message (cl:slot-value self 'response)))))
-        ;; repeated .Response.Frame backtrace = 4;
+        ;; optional .Backtrace backtrace = 4;
         ((34)
           (cl:multiple-value-bind (length new-index)
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::response-frame)))
+            (cl:let ((message (cl:slot-value self 'backtrace)))
+              (cl:when (cl:null message)
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::backtrace))
+                (cl:setf (cl:slot-value self 'backtrace) message)
+                (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
-                (cl:error "buffer overflow"))
-              (cl:vector-push-extend message (cl:slot-value self 'backtrace)))))
+                (cl:error "buffer overflow")))))
         (cl:t
           (cl:when (cl:= (cl:logand tag 7) 4)
             (cl:return-from pb:merge-from-array index))
@@ -960,17 +1362,19 @@
             (length (cl:length vf)))
     (cl:loop for i from 0 below length do
       (cl:vector-push-extend (cl:aref vf i) v)))
-  (cl:let* ((v (cl:slot-value self 'backtrace))
-            (vf (cl:slot-value from 'backtrace))
-            (length (cl:length vf)))
-    (cl:loop for i from 0 below length do
-      (cl:vector-push-extend (cl:aref vf i) v)))
   (cl:when (cl:logbitp 0 (cl:slot-value from '%has-bits%))
     (cl:setf (cl:slot-value self 'type) (cl:slot-value from 'type))
     (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1))
   (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
     (cl:setf (cl:slot-value self 'token) (cl:slot-value from 'token))
     (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
+  (cl:when (cl:logbitp 3 (cl:slot-value from '%has-bits%))
+    (cl:let ((message (cl:slot-value self 'backtrace)))
+      (cl:when (cl:null message)
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::backtrace))
+        (cl:setf (cl:slot-value self 'backtrace) message)
+        (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
+     (pb:merge-from-message message (cl:slot-value from 'backtrace))))
 )
 
 
@@ -983,7 +1387,7 @@
   (val
    :writer (cl:setf val)
    :initform cl:nil
-   :type (cl:or cl:null protocol-buffer::datum))
+   :type (cl:or cl:null cl-rethinkdb-proto::datum))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
@@ -1023,7 +1427,7 @@
 (cl:defmethod val ((self datum-assoc-pair))
   (cl:let ((result (cl:slot-value self 'val)))
     (cl:when (cl:null result)
-      (cl:setf result (cl:make-instance 'protocol-buffer::datum))
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::datum))
       (cl:setf (cl:slot-value self 'val) result))
       (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
     result))
@@ -1052,8 +1456,8 @@
   (
   (type
    :accessor type
-   :initform protocol-buffer::+datum-datum-type-r-null+
-   :type protocol-buffer::datum-datum-type)
+   :initform cl-rethinkdb-proto::+datum-datum-type-r-null+
+   :type cl-rethinkdb-proto::datum-datum-type)
   (r-bool
    :accessor r-bool
    :initform cl:nil
@@ -1070,16 +1474,16 @@
    :accessor r-array
    :initform (cl:make-array
               0
-              :element-type 'protocol-buffer::datum
+              :element-type 'cl-rethinkdb-proto::datum
               :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::datum))
+   :type (cl:vector cl-rethinkdb-proto::datum))
   (r-object
    :accessor r-object
    :initform (cl:make-array
               0
-              :element-type 'protocol-buffer::datum-assoc-pair
+              :element-type 'cl-rethinkdb-proto::datum-assoc-pair
               :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::datum-assoc-pair))
+   :type (cl:vector cl-rethinkdb-proto::datum-assoc-pair))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
@@ -1107,7 +1511,7 @@
 (cl:unless (cl:fboundp 'clear-type)
   (cl:defgeneric clear-type (proto)))
 (cl:defmethod clear-type ((self datum))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+datum-datum-type-r-null+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+datum-datum-type-r-null+)
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-type)
@@ -1181,7 +1585,7 @@
   (cl:defgeneric clear-r-array (proto)))
 (cl:defmethod clear-r-array ((self datum))
   (cl:setf (cl:slot-value self 'r-array)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum
             :fill-pointer 0 :adjustable cl:t))
   (cl:values))
 (cl:export 'clear-r-array)
@@ -1192,7 +1596,7 @@
   (cl:defgeneric clear-r-object (proto)))
 (cl:defmethod clear-r-object ((self datum))
   (cl:setf (cl:slot-value self 'r-object)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum-assoc-pair
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
   (cl:values))
 (cl:export 'clear-r-object)
@@ -1217,10 +1621,6 @@
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self datum-assoc-pair))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b11)
-                  #b11)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:unless (pb:is-initialized (cl:slot-value self 'val))
       (cl:return-from pb:is-initialized cl:nil)))
@@ -1228,12 +1628,12 @@
 
 (cl:defmethod pb:octet-size ((self datum-assoc-pair))
   (cl:let ((size 0))
-    ;; required string key = 1;
+    ;; optional string key = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (cl:let ((s (pb::%utf8-string-length% (cl:slot-value self 'key))))
         (cl:+ s (varint:length32 s)))))
-    ;; required .Datum val = 2;
+    ;; optional .Datum val = 2;
     (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
       (cl:let ((s (pb:octet-size (cl:slot-value self 'val))))
         (cl:incf size (cl:+ 1 s (varint:length32 s)))))
@@ -1244,11 +1644,11 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required string key = 1;
+  ;; optional string key = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 10))
     (cl:setf index (wire-format:write-octets-carefully buffer index limit (cl:slot-value (cl:slot-value self 'key) 'pb::%octets%))))
-  ;; required .Datum val = 2;
+  ;; optional .Datum val = 2;
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 18))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'val) 'pb::%cached-size%)))
@@ -1265,14 +1665,14 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required string key = 1;
+        ;; optional string key = 1;
         ((10)
           (cl:multiple-value-bind (value new-index)
               (wire-format:read-octets-carefully buffer index limit)
             (cl:setf (cl:slot-value self 'key) (pb:string-field value))
             (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
-        ;; required .Datum val = 2;
+        ;; optional .Datum val = 2;
         ((18)
           (cl:multiple-value-bind (length new-index)
               (varint:parse-uint31-carefully buffer index limit)
@@ -1280,7 +1680,7 @@
               (cl:error "buffer overflow"))
             (cl:let ((message (cl:slot-value self 'val)))
               (cl:when (cl:null message)
-                (cl:setf message (cl:make-instance 'protocol-buffer::datum))
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
                 (cl:setf (cl:slot-value self 'val) message)
                 (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
@@ -1298,7 +1698,7 @@
   (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
     (cl:let ((message (cl:slot-value self 'val)))
       (cl:when (cl:null message)
-        (cl:setf message (cl:make-instance 'protocol-buffer::datum))
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
         (cl:setf (cl:slot-value self 'val) message)
         (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
      (pb:merge-from-message message (cl:slot-value from 'val))))
@@ -1323,25 +1723,21 @@
   (cl:values))
 
 (cl:defmethod pb:clear ((self datum))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+datum-datum-type-r-null+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+datum-datum-type-r-null+)
   (cl:setf (cl:slot-value self 'r-bool) cl:nil)
   (cl:setf (cl:slot-value self 'r-num) 0d0)
   (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
     (cl:setf (cl:slot-value self 'r-str) (pb:string-field "")))
   (cl:setf (cl:slot-value self 'r-array)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum
             :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self 'r-object)
-           (cl:make-array 0 :element-type 'protocol-buffer::datum-assoc-pair
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self '%has-bits%) 0)
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self datum))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b000001)
-                  #b000001)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:let* ((x (cl:slot-value self 'r-array))
             (length (cl:length x)))
     (cl:dotimes (i length)
@@ -1356,7 +1752,7 @@
 
 (cl:defmethod pb:octet-size ((self datum))
   (cl:let ((size 0))
-    ;; required .Datum.DatumType type = 1;
+    ;; optional .Datum.DatumType type = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
@@ -1394,7 +1790,7 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required .Datum.DatumType type = 1;
+  ;; optional .Datum.DatumType type = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
     (cl:setf index
@@ -1426,6 +1822,10 @@
        (cl:setf index (varint:encode-uint32-carefully buffer index limit 50))
        (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:aref v i) 'pb::%cached-size%)))
        (cl:setf index (pb:serialize (cl:aref v i) buffer index limit))))
+  ;// Extension range [10000, 20001)
+  ;DO_(_extensions_.SerializeWithCachedSizes(
+  ;    10000, 20001, *this, output));
+
   index)
 
 (cl:defmethod pb:merge-from-array ((self datum) buffer start limit)
@@ -1438,7 +1838,7 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required .Datum.DatumType type = 1;
+        ;; optional .Datum.DatumType type = 1;
         ((8)
           (cl:multiple-value-bind (value new-index)
               (varint:parse-int32-carefully buffer index limit)
@@ -1473,7 +1873,7 @@
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::datum)))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::datum)))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow"))
@@ -1484,7 +1884,7 @@
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::datum-assoc-pair)))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::datum-assoc-pair)))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow"))
@@ -1529,7 +1929,7 @@
   (val
    :writer (cl:setf val)
    :initform cl:nil
-   :type (cl:or cl:null protocol-buffer::term))
+   :type (cl:or cl:null cl-rethinkdb-proto::term))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
@@ -1569,7 +1969,7 @@
 (cl:defmethod val ((self term-assoc-pair))
   (cl:let ((result (cl:slot-value self 'val)))
     (cl:when (cl:null result)
-      (cl:setf result (cl:make-instance 'protocol-buffer::term))
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::term))
       (cl:setf (cl:slot-value self 'val) result))
       (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
     result))
@@ -1598,26 +1998,26 @@
   (
   (type
    :accessor type
-   :initform protocol-buffer::+term-term-type-datum+
-   :type protocol-buffer::term-term-type)
+   :initform cl-rethinkdb-proto::+term-term-type-datum+
+   :type cl-rethinkdb-proto::term-term-type)
   (datum
    :writer (cl:setf datum)
    :initform cl:nil
-   :type (cl:or cl:null protocol-buffer::datum))
+   :type (cl:or cl:null cl-rethinkdb-proto::datum))
   (args
    :accessor args
    :initform (cl:make-array
               0
-              :element-type 'protocol-buffer::term
+              :element-type 'cl-rethinkdb-proto::term
               :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::term))
+   :type (cl:vector cl-rethinkdb-proto::term))
   (optargs
    :accessor optargs
    :initform (cl:make-array
               0
-              :element-type 'protocol-buffer::term-assoc-pair
+              :element-type 'cl-rethinkdb-proto::term-assoc-pair
               :fill-pointer 0 :adjustable cl:t)
-   :type (cl:vector protocol-buffer::term-assoc-pair))
+   :type (cl:vector cl-rethinkdb-proto::term-assoc-pair))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
@@ -1645,7 +2045,7 @@
 (cl:unless (cl:fboundp 'clear-type)
   (cl:defgeneric clear-type (proto)))
 (cl:defmethod clear-type ((self term))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+term-term-type-datum+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+term-term-type-datum+)
   (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-type)
@@ -1657,7 +2057,7 @@
 (cl:defmethod datum ((self term))
   (cl:let ((result (cl:slot-value self 'datum)))
     (cl:when (cl:null result)
-      (cl:setf result (cl:make-instance 'protocol-buffer::datum))
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::datum))
       (cl:setf (cl:slot-value self 'datum) result))
       (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1)
     result))
@@ -1686,7 +2086,7 @@
   (cl:defgeneric clear-args (proto)))
 (cl:defmethod clear-args ((self term))
   (cl:setf (cl:slot-value self 'args)
-           (cl:make-array 0 :element-type 'protocol-buffer::term
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::term
             :fill-pointer 0 :adjustable cl:t))
   (cl:values))
 (cl:export 'clear-args)
@@ -1697,7 +2097,7 @@
   (cl:defgeneric clear-optargs (proto)))
 (cl:defmethod clear-optargs ((self term))
   (cl:setf (cl:slot-value self 'optargs)
-           (cl:make-array 0 :element-type 'protocol-buffer::term-assoc-pair
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::term-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
   (cl:values))
 (cl:export 'clear-optargs)
@@ -1722,10 +2122,6 @@
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self term-assoc-pair))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b11)
-                  #b11)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:unless (pb:is-initialized (cl:slot-value self 'val))
       (cl:return-from pb:is-initialized cl:nil)))
@@ -1733,12 +2129,12 @@
 
 (cl:defmethod pb:octet-size ((self term-assoc-pair))
   (cl:let ((size 0))
-    ;; required string key = 1;
+    ;; optional string key = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (cl:let ((s (pb::%utf8-string-length% (cl:slot-value self 'key))))
         (cl:+ s (varint:length32 s)))))
-    ;; required .Term val = 2;
+    ;; optional .Term val = 2;
     (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
       (cl:let ((s (pb:octet-size (cl:slot-value self 'val))))
         (cl:incf size (cl:+ 1 s (varint:length32 s)))))
@@ -1749,11 +2145,11 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required string key = 1;
+  ;; optional string key = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 10))
     (cl:setf index (wire-format:write-octets-carefully buffer index limit (cl:slot-value (cl:slot-value self 'key) 'pb::%octets%))))
-  ;; required .Term val = 2;
+  ;; optional .Term val = 2;
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 18))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'val) 'pb::%cached-size%)))
@@ -1770,14 +2166,14 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required string key = 1;
+        ;; optional string key = 1;
         ((10)
           (cl:multiple-value-bind (value new-index)
               (wire-format:read-octets-carefully buffer index limit)
             (cl:setf (cl:slot-value self 'key) (pb:string-field value))
             (cl:setf (cl:ldb (cl:byte 1 0) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
-        ;; required .Term val = 2;
+        ;; optional .Term val = 2;
         ((18)
           (cl:multiple-value-bind (length new-index)
               (varint:parse-uint31-carefully buffer index limit)
@@ -1785,7 +2181,7 @@
               (cl:error "buffer overflow"))
             (cl:let ((message (cl:slot-value self 'val)))
               (cl:when (cl:null message)
-                (cl:setf message (cl:make-instance 'protocol-buffer::term))
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
                 (cl:setf (cl:slot-value self 'val) message)
                 (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
@@ -1803,7 +2199,7 @@
   (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
     (cl:let ((message (cl:slot-value self 'val)))
       (cl:when (cl:null message)
-        (cl:setf message (cl:make-instance 'protocol-buffer::term))
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::term))
         (cl:setf (cl:slot-value self 'val) message)
         (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
      (pb:merge-from-message message (cl:slot-value from 'val))))
@@ -1824,23 +2220,19 @@
   (cl:values))
 
 (cl:defmethod pb:clear ((self term))
-  (cl:setf (cl:slot-value self 'type) protocol-buffer::+term-term-type-datum+)
+  (cl:setf (cl:slot-value self 'type) cl-rethinkdb-proto::+term-term-type-datum+)
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf (cl:slot-value self 'datum) cl:nil))
   (cl:setf (cl:slot-value self 'args)
-           (cl:make-array 0 :element-type 'protocol-buffer::term
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::term
             :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self 'optargs)
-           (cl:make-array 0 :element-type 'protocol-buffer::term-assoc-pair
+           (cl:make-array 0 :element-type 'cl-rethinkdb-proto::term-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
   (cl:setf (cl:slot-value self '%has-bits%) 0)
   (cl:values))
 
 (cl:defmethod pb:is-initialized ((self term))
-  (cl:when (cl:/= (cl:logand (cl:slot-value self '%has-bits%)
-                             #b0001)
-                  #b0001)
-    (cl:return-from pb:is-initialized cl:nil))
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:unless (pb:is-initialized (cl:slot-value self 'datum))
       (cl:return-from pb:is-initialized cl:nil)))
@@ -1858,7 +2250,7 @@
 
 (cl:defmethod pb:octet-size ((self term))
   (cl:let ((size 0))
-    ;; required .Term.TermType type = 1;
+    ;; optional .Term.TermType type = 1;
     (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
       (cl:incf size 1)
       (cl:incf size (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'type)))))
@@ -1887,7 +2279,7 @@
   (cl:declare (cl:type com.google.base:octet-vector buffer)
               (cl:type com.google.base:vector-index index limit)
               (cl:ignorable buffer limit))
-  ;; required .Term.TermType type = 1;
+  ;; optional .Term.TermType type = 1;
   (cl:when (cl:logbitp 0 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 8))
     (cl:setf index
@@ -1928,7 +2320,7 @@
         (varint:parse-uint32-carefully buffer index limit)
       (cl:setf index new-index)
       (cl:case tag
-        ;; required .Term.TermType type = 1;
+        ;; optional .Term.TermType type = 1;
         ((8)
           (cl:multiple-value-bind (value new-index)
               (varint:parse-int32-carefully buffer index limit)
@@ -1944,7 +2336,7 @@
               (cl:error "buffer overflow"))
             (cl:let ((message (cl:slot-value self 'datum)))
               (cl:when (cl:null message)
-                (cl:setf message (cl:make-instance 'protocol-buffer::datum))
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
                 (cl:setf (cl:slot-value self 'datum) message)
                 (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
@@ -1956,7 +2348,7 @@
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::term)))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::term)))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow"))
@@ -1967,7 +2359,7 @@
               (varint:parse-uint31-carefully buffer index limit)
             (cl:when (cl:> (cl:+ new-index length) limit)
               (cl:error "buffer overflow"))
-            (cl:let ((message (cl:make-instance 'protocol-buffer::term-assoc-pair)))
+            (cl:let ((message (cl:make-instance 'cl-rethinkdb-proto::term-assoc-pair)))
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow"))
@@ -1994,7 +2386,7 @@
   (cl:when (cl:logbitp 1 (cl:slot-value from '%has-bits%))
     (cl:let ((message (cl:slot-value self 'datum)))
       (cl:when (cl:null message)
-        (cl:setf message (cl:make-instance 'protocol-buffer::datum))
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
         (cl:setf (cl:slot-value self 'datum) message)
         (cl:setf (cl:ldb (cl:byte 1 1) (cl:slot-value self '%has-bits%)) 1))
      (pb:merge-from-message message (cl:slot-value from 'datum))))
