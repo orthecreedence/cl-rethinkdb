@@ -70,13 +70,3 @@
       (incf idx))
     final))
 
-(defun datum-term (datum &optional options)
-  "Wraps a term around a datum."
-  (let ((term (make-instance 'term)))
-    (setf (type term) +term-term-type-datum+
-          (datum term) datum)
-    (when options
-      (dolist (option options)
-        (vector-push-extend (term-assoc (car option) (cdr option)) (optargs term))))
-    term))
-
