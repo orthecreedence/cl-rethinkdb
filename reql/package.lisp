@@ -19,8 +19,6 @@
            #:<
            #:<=
            #:do
-           #:error
-           #:coerce
-           #:type-of)
+           #:error)
   (:nicknames :r))
 
