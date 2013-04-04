@@ -25,7 +25,7 @@
   (let ((term (make-instance 'term)))
     (setf (type term) type)
     (dolist (arg args)
-      (let ((value (if (subtypep (type-of arg) 'term)
+      (let ((value (if (typep arg 'term)
                        arg
                        (term-from-datum arg))))
         (vector-push-extend value (args term))))

@@ -9,31 +9,31 @@
    datum is created/returned)"
   (let ((datum (make-instance 'datum))
         (datum-type nil)
-        (datum-slot nil))
+        (datum-accessor nil))
     (unless null-datum
       (cond ((typep value 'string)
              (setf value (pb:string-field value)
                    datum-type +datum-datum-type-r-str+
-                   datum-slot 'r-str))
+                   datum-accessor 'r-str))
             ((typep value 'real)
              (setf value (coerce value 'double-float)
                    datum-type +datum-datum-type-r-num+
-                   datum-slot 'r-num))
+                   datum-accessor 'r-num))
             ((typep value 'boolean)
              (setf datum-type +datum-datum-type-r-bool+
-                   datum-slot 'r-bool))
+                   datum-accessor 'r-bool))
             ((typep value 'object-collection)
              (setf value (datum-array value)
                    datum-type +datum-datum-type-r-array+
-                   datum-slot 'r-array))
+                   datum-accessor 'r-array))
             ((typep value 'object)
              (setf value (datum-object value)
                    datum-type +datum-datum-type-r-object+
-                   datum-slot 'r-object))))
+                   datum-accessor 'r-object))))
     (when datum-type
       (setf (type datum) datum-type)
-      (when datum-slot
-        (setf (slot-value datum datum-slot) value)))
+      (when datum-accessor
+        (funcall (fdefinition (list 'setf datum-accessor)) value datum)))
     datum))
 
 (defun datum-object (hash/alist)
