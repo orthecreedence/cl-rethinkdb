@@ -7,6 +7,15 @@
   "Generates a new token value for a query."
   (prog1 *token* (incf *token*)))
 
+(defclass query ()
+  ((state :accessor query-state :initarg :state :initform :new
+     :documentation "Describes the current state of the query (new, complete, etc).")
+   (future :accessor query-future :initarg :future :initform nil
+     :documentation "Holds the future that will be finished with the results from this query."))
+  (:documentation
+    "The query class holds the state of a query, as well as the future that will
+     be finished when the query returns results."))
+
 (defun make-response-handler ()
   "This function returns a closure that can be called multiple times with data
    from a RethinkDB response. If a full response is received (over one or more
@@ -36,8 +45,9 @@
    
    Also throws any errors encountered in the response (client error, compile
    error, runtime error)."
-  (let ((response-type (type repsonse))
-        (token (token response)))
+  (let* ((response-type (type repsonse))
+         (token (token response))
+         (query (get-query-from-token token)))
     (cond ((eq response-type +response-response-type-success-atom+)
            )
           ((eq response-type +response-response-type-success-sequence+)

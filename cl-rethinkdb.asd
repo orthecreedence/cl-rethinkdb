@@ -8,8 +8,8 @@
   ((:file "util")
    (:file "package" :depends-on ("util"))
    (:file "protocol" :depends-on ("package"))
-   (:file "comm" :depends-on ("protocol"))
-   (:file "connection" :depends-on ("comm"))
+   (:file "query" :depends-on ("protocol"))
+   (:file "connection" :depends-on ("query"))
    (:module reql
     :serial t
 	:components
