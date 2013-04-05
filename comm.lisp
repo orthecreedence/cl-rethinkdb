@@ -36,6 +36,20 @@
    
    Also throws any errors encountered in the response (client error, compile
    error, runtime error)."
+  (let ((response-type (type repsonse))
+        (token (token response)))
+    (cond ((eq response-type +response-response-type-success-atom+)
+           )
+          ((eq response-type +response-response-type-success-sequence+)
+           )
+          ((eq response-type +response-response-type-success-partial+)
+           )
+          ((eq response-type +response-response-type-client-error+)
+           )
+          ((eq response-type +response-response-type-compile-error+)
+           )
+          ((eq response-type +response-response-type-runtime-error+)
+           )))
   response)
 
 (defun connect (host port &key db (read-timeout 5))
