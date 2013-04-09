@@ -107,6 +107,8 @@
          (value nil))
     ;; by default query is finished
     (setf (query-state query) :finished)
+    (format t "---raw(~a)---" token)
+    (pprint response)
     (cond ((eq response-type +response-response-type-success-atom+)
            (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type array-type :object-type object-type)))
           ((eq response-type +response-response-type-success-sequence+)
@@ -172,16 +174,17 @@
 (defun test (query-form)
   (as:start-event-loop
     (lambda ()
-      (future-handler-case
         (alet ((sock (connect "127.0.0.1" 28015)))
-          (let ((query (make-instance 'query)))
-            (setf (type query) rdp:+query-query-type-start+
-                  (query query) query-form)
-            (multiple-future-bind (response token)
-                (run sock query :array-type :list :object-type :alist)
-              (format t "---response(~a)---" token)
-              (pprint response)
-              (as:close-socket sock))))
-        (error (e)
-          (format t "Query error: ~a~%" e))))))
+          (future-handler-case
+            (let ((query (make-instance 'query)))
+              (setf (type query) rdp:+query-query-type-start+
+                    (query query) query-form)
+              (multiple-future-bind (response token)
+                  (run sock query :array-type :array :object-type :alist)
+                (format t "---response(~a)---" token)
+                (pprint response)
+                (as:close-socket sock)))
+            (error (e)
+              (format t "Query error: ~a~%" e)
+              (as:close-socket sock)))))))
 
