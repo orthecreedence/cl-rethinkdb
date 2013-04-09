@@ -41,8 +41,8 @@
            (find (type term-obj) term-type)
            (eq (type term-obj) term-type))))
 
-(defun js (javascript-str)
+(defun js (javascript-fn-obj)
   "Creates a javascript object from a javascript string."
   (create-term +term-term-type-javascript+
-               (list (term-from-datum (create-datum (fn-to-str javascript-str))))))
+               (list (term-from-datum (create-datum (fn-to-str javascript-fn-obj))))))
 

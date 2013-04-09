@@ -20,7 +20,7 @@
 
 (defun objectp (object)
   "Determine if an object is a hash table or alist."
-  (subtypep (type-of object) 'object))
+  (typep object 'object))
 
 (defun object-collection-p (collection)
   "Test if an object is a collection (list or vector) or alists/hashes."

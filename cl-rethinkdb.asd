@@ -8,8 +8,7 @@
   ((:file "util")
    (:file "package" :depends-on ("util"))
    (:file "protocol" :depends-on ("package"))
-   (:file "query" :depends-on ("protocol"))
-   (:file "connection" :depends-on ("query"))
+   (:file "config" :depends-on ("package"))
    (:module reql
     :serial t
 	:components
@@ -17,6 +16,9 @@
 	 (:file "datum")
 	 (:file "term")
 	 (:file "javascript")
-	 (:file "commands"))
-	:depends-on ("protocol"))))
+	 (:file "commands")
+	 (:file "dsl"))
+	:depends-on ("protocol" "config"))
+   (:file "query" :depends-on (reql "protocol" "config"))
+   (:file "connection" :depends-on (reql "query" "config"))))
 

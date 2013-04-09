@@ -20,5 +20,6 @@
            #:<=
            #:do
            #:error)
+  (:export :r)
   (:nicknames :r))
 
