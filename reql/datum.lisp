@@ -29,7 +29,11 @@
             ((typep value 'object)
              (setf value (datum-object value)
                    datum-type +datum-datum-type-r-object+
-                   datum-accessor 'r-object))))
+                   datum-accessor 'r-object))
+            ((typep value '(or list vector))
+             (setf value (datum-array value)
+                   datum-type +datum-datum-type-r-array+
+                   datum-accessor 'r-array))))
     (when datum-type
       (setf (type datum) datum-type)
       (when datum-accessor

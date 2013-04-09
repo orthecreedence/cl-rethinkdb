@@ -41,8 +41,19 @@
            (find (type term-obj) term-type)
            (eq (type term-obj) term-type))))
 
-(defun js (javascript-fn-obj)
-  "Creates a javascript object from a javascript string."
-  (create-term +term-term-type-javascript+
-               (list (term-from-datum (create-datum (fn-to-str javascript-fn-obj))))))
+(defun term-array (list/vector)
+  "Make a MAKE_ARRAY term from a list/vector."
+  (assert (typep list/vector '(or list vector)))
+  (create-term +term-term-type-make-array+
+               (let ((final nil))
+                 (do-list/vector (o list/vector)
+                   (push (term-from-datum (create-datum o)) final))
+                 (nreverse final))))
+
+(defun term-object (alist)
+  "Make a MAKE_OBJ term from an alist."
+  (assert (alistp alist))
+  (create-term +term-term-type-make-obj+
+               '()
+               alist))
 

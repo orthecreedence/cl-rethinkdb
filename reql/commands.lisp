@@ -87,7 +87,9 @@
 (defun is-string (object)
   "Determines if an object can be used as a string term."
   (or (stringp object)
-      (is-term +term-term-type-add+ object)))
+      (is-term (list +term-term-type-add+
+                     +term-term-type-var+)
+               object)))
 
 (defun is-number (object)
   "Determines if an object can be used as a number term."
@@ -97,7 +99,8 @@
                      +term-term-type-mul+
                      +term-term-type-div+
                      +term-term-type-mod+
-                     +term-term-type-count+)
+                     +term-term-type-count+
+                     +term-term-type-var+)
                object)))
 
 (defun is-pkey (object)
@@ -107,9 +110,9 @@
       (is-number object)))
 
 (defun is-function (object)
-  "Test if an object is a term function or javascript-fn object."
-  (or (typep object 'javascript-fn)
-      (is-term (list +term-term-type-func+
+  "Test if an object is a term function or reql-function object."
+  (or (is-term (list +term-term-type-func+
+                     +term-term-type-make-obj+
                      +term-term-type-javascript+)
                object)))
 
@@ -117,17 +120,17 @@
   "Make sure a sequence type is wrapped in a term."
   (cond ((typep object 'term)
          object)
-        ((typep object 'javascript-fn)
-         (js object))
+        ((typep object '(or object object-collection))
+         (term-from-datum (create-datum object)))
         (t
          (term-from-datum (create-datum object)))))
 
-(defmacro assert-fn-args (javascript-fn num-args)
-  "Assert that a javascript function has the correct number of arguments."
+(defmacro assert-fn-args (reql-function num-args)
+  "Assert that a function has the correct number of arguments."
   (let ((fn (gensym "fn")))
-    `(let ((,fn ,javascript-fn))
-       (when (typep ,fn 'javascript-fn)
-         (assert (= (num-args ,fn) ,num-args))))))
+    `(let ((,fn ,reql-function))
+       (when (is-term +term-term-type-func+ ,fn)
+         (assert (eq (num-args ,fn) ,num-args))))))
 
 (deftype pkey () '(or real string))
 
@@ -213,33 +216,33 @@
                      (wrap-in-term sequence/object))
                (when upsert '(("upsert" . t)))))
 
-(defcommand update (select object/javascript-fn &key non-atomic)
-  "Update an object or set of objects (a select) using the given object or
-   javascript function string. Supports using non-atomic writing via
-   :non-atomic."
+(defcommand update (select object/reql-function &key non-atomic)
+  "Update an object or set of objects (a select) using the given object or REQL
+   function object. Supports using non-atomic writing via :non-atomic."
   (assert (is-select select))
-  (assert (typep object/javascript-fn '(or object javascript-fn)))
-  (assert-fn-args object/javascript-fn 2)
+  (assert (or (is-object object/reql-function)
+              (is-function object/reql-function)))
+  (assert-fn-args object/reql-function 2)
   (assert (is-boolean non-atomic))
   (create-term +term-term-type-update+
                (list (wrap-in-term select)
-                     (wrap-in-term object/javascript-fn))
+                     (wrap-in-term object/reql-function))
                (when non-atomic
                  '(("non_atomic" . t)))))
 
-(defcommand replace (select object/javascript-fn &key non-atomic)
+(defcommand replace (select object/reql-function &key non-atomic)
   "Replace an entire object or set of objects (a select) using the given object
-   javascript function string. Supports using non-atomic writing via
-   :non-atomic.
+   REQL function string. Supports using non-atomic writing via :non-atomic.
    
    The replacement object needs to have the primary key in it."
   (assert (is-select select))
-  (assert (typep object/javascript-fn '(or object string)))
-  (assert-fn-args object/javascript-fn 2)
+  (assert (or (is-object object/reql-function)
+              (is-function object/reql-function)))
+  (assert-fn-args object/reql-function 2)
   (assert (is-boolean non-atomic))
   (create-term +term-term-type-replace+
                (list (wrap-in-term select)
-                     (wrap-in-term object/javascript-fn))
+                     (wrap-in-term object/reql-function))
                (when non-atomic
                  '(("non_atomic" . t)))))
 
@@ -295,39 +298,39 @@
                  (list (wrap-in-term select))
                  options)))
 
-(defcommand filter (sequence object/javascript-fn)
-  "Filter a sequence by either an object or a javascript function (string)."
+(defcommand filter (sequence object/reql-function)
+  "Filter a sequence by either an object or a REQL function."
   (assert (is-sequence sequence))
-  (assert (typep object/javascript-fn '(or object javascript-fn)))
+  (assert (or (is-object object/reql-function)
+              (is-function object/reql-function)))
   (create-term +term-term-type-filter+
                (list (wrap-in-term sequence)
-                     (wrap-in-term object/javascript-fn))))
+                     (wrap-in-term object/reql-function))))
 
 ;; -----------------------------------------------------------------------------
 ;; joins
 ;; -----------------------------------------------------------------------------
-(defcommand inner-join (sequence1 sequence2 javascript-fn)
-  "Perform an inner join on two sequences using the given javascript function."
+(defcommand inner-join (sequence1 sequence2 reql-function)
+  "Perform an inner join on two sequences using the given REQL function."
   (assert (is-sequence sequence1))
   (assert (is-sequence sequence2))
-  (assert (typep javascript-fn 'javascript-fn))
-  (assert-fn-args javascript-fn 2)
+  (assert (is-function reql-function))
+  (assert-fn-args reql-function 2)
   (create-term +term-term-type-inner-join+
                (list (wrap-in-term sequence1)
                      (wrap-in-term sequence2)
-                     (js javascript-fn))))
+                     (wrap-in-term reql-function))))
   
-(defcommand outer-join (sequence1 sequence2 javascript-fn)
-  "Perform a left outer join on two sequences using the given javascript
-   function."
+(defcommand outer-join (sequence1 sequence2 reql-function)
+  "Perform a left outer join on two sequences using the given REQL function."
   (assert (is-sequence sequence1))
   (assert (is-sequence sequence2))
-  (assert (typep javascript-fn 'javascript-fn))
-  (assert-fn-args javascript-fn 2)
+  (assert (is-function reql-function))
+  (assert-fn-args reql-function 2)
   (create-term +term-term-type-outer-join+
                (list (wrap-in-term sequence1)
                      (wrap-in-term sequence2)
-                     (js javascript-fn))))
+                     (wrap-in-term reql-function))))
   
 (defcommand eq-join (sequence1 field sequence2)
   "Perform an equality join on two sequences by the given attribute name."
@@ -347,23 +350,23 @@
 ;; -----------------------------------------------------------------------------
 ;; transformations
 ;; -----------------------------------------------------------------------------
-(defcommand map (sequence javascript-fn)
+(defcommand map (sequence reql-function)
   "Perform a map (as in map/reduce) on a sequence."
   (assert (is-sequence sequence))
-  (assert (typep javascript-fn 'javascript-fn))
-  (assert-fn-args javascript-fn 1)
+  (assert (is-function reql-function))
+  (assert-fn-args reql-function 1)
   (create-term +term-term-type-map+
                (list (wrap-in-term sequence)
-                     (wrap-in-term javascript-fn))))
+                     (wrap-in-term reql-function))))
 
-(defcommand concat-map (sequence javascript-fn)
+(defcommand concat-map (sequence reql-function)
   "Construct a sequence of all elements returned by the given mapping function."
   (assert (is-sequence sequence))
-  (assert (typep javascript-fn 'javascript-fn))
-  (assert-fn-args javascript-fn 1)
+  (assert (is-function reql-function))
+  (assert-fn-args reql-function 1)
   (create-term +term-term-type-concatmap+
                (list (wrap-in-term sequence)
-                     (wrap-in-term javascript-fn))))
+                     (wrap-in-term reql-function))))
 
 (defcommand order-by (sequence field &rest fields)
   "Order a sequence by fields."
@@ -425,14 +428,14 @@
 ;; -----------------------------------------------------------------------------
 ;; aggregation
 ;; -----------------------------------------------------------------------------
-(defcommand reduce (sequence javascript-fn)
-  "Perform a reduce on sequence using the given javascript function."
+(defcommand reduce (sequence reql-function)
+  "Perform a reduce on sequence using the given REQL function."
   (assert (is-sequence sequence))
-  (assert (typep javascript-fn 'javascript-fn))
-  (assert-fn-args javascript-fn 2)
+  (assert (is-function reql-function))
+  (assert-fn-args reql-function 2)
   (create-term +term-term-type-reduce+
                (list (wrap-in-term sequence)
-                     (wrap-in-term javascript-fn))))
+                     (wrap-in-term reql-function))))
 
 (defcommand count (sequence)
   "Counts the items in a sequence."
@@ -449,9 +452,9 @@
 (defcommand grouped-map-reduce (sequence function-group function-map function-reduce)
   "Partition a sequence into groups then perform map/reduce on those groups."
   (assert (is-sequence sequence))
-  (assert (typep function-group 'javascript-fn))
-  (assert (typep function-map 'javascript-fn))
-  (assert (typep function-reduce 'javascript-fn))
+  (assert (is-function function-group))
+  (assert (is-function function-map))
+  (assert (is-function function-reduce))
   (assert-fn-args function-group 1)
   (assert-fn-args function-map 1)
   (assert-fn-args function-reduce 2)
@@ -467,13 +470,12 @@
         (fields (butlast fields-then-reduction)))
     (assert (is-sequence sequence))
     (dolist (field fields)
-      ;; TODO: can is-string be used???
       (assert (stringp field)))
     (assert (is-function reduce-fn))
     (create-term +term-term-type-groupby+
-                 (cl:append (list (wrap-in-term sequence))
-                            (loop for f in fields collect (wrap-in-term f))
-                            (list (wrap-in-term reduce-fn))))))
+                 (list (wrap-in-term sequence)
+                       (term-array fields)
+                       (wrap-in-term reduce-fn)))))
 
 ;; -----------------------------------------------------------------------------
 ;; reductions
@@ -510,30 +512,17 @@
 ;   }
 ; }
 
-(defvar *varnum* 0
-  "Used to track lambda variables in functions.")
-
-(defparameter count
-  nil
+(defvar count
+  (term-object '(("COUNT" . t)))
   "A count reduction object.")
 
 (defcommand sum (field)
   "Sum a field as a reduction."
-  (let ((varnum (incf *varnum*)))
-    (create-term
-      +term-term-type-func+
-      (list (create-term
-              +term-term-type-make-array+
-              (wrap-in-term (create-datum varnum)))
-            (create-term
-              +term-term-type-make-obj+
-              '()
-              `(("avg" . ,(create-term
-                            +term-term-type-var+
-                            (list (wrap-in-term (create-datum varnum)))))))))))
+  (term-object `(("SUM" . ,field))))
 
 (defcommand avg (field)
-  "Average a field as a reduction.")
+  "Average a field as a reduction."
+  (term-object `(("AVG" . ,field))))
 
 ;; -----------------------------------------------------------------------------
 ;; document manipulation
