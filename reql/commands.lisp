@@ -118,6 +118,8 @@
                      +term-term-type-branch+)
                object)))
 
+(deftype pkey () '(or real string))
+
 (defun is-pkey (object)
   "Determines if an object is a primary key term."
   (or (typep object 'pkey)
@@ -146,8 +148,6 @@
     `(let ((,fn ,reql-function))
        (when (is-term +term-term-type-func+ ,fn)
          (assert (eq (num-args ,fn) ,num-args))))))
-
-(deftype pkey () '(or real string))
 
 (defparameter *commands* nil
   "Holds all commands defined with defcommand.")

@@ -94,6 +94,7 @@
       (when (<= response-size (length response-bytes))
         response-bytes))))
 
+(defparameter *glob* nil)
 (defun parse-response (response &key (array-type :array) (object-type :hash))
   "Parses a RethinkDB response (deserialized into protobuf classes) into a
    lispy/readable format.
@@ -104,17 +105,20 @@
          (token (token response))
          (query (get-query token))
          (future (query-future query))
-         (value nil))
+         (value nil)
+         (value-set-p nil))
     ;; by default query is finished
     (setf (query-state query) :finished)
-    (format t "---raw(~a)---" token)
-    (pprint response)
+    (setf *glob* response)
     (cond ((eq response-type +response-response-type-success-atom+)
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type array-type :object-type object-type)))
+           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type array-type :object-type object-type)
+                 value-set-p t))
           ((eq response-type +response-response-type-success-sequence+)
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type array-type :object-type object-type)))
+           (setf value (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type array-type :object-type object-type)
+                 value-set-p t))
           ((eq response-type +response-response-type-success-partial+)
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type array-type :object-type object-type))
+           (setf value (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type array-type :object-type object-type)
+                 value-set-p t)
            ;; mark query as a partiel
            (setf (query-state query) :partial))
           ((or (find response-type (list +response-response-type-client-error+
@@ -130,7 +134,7 @@
                                      'query-runtime-error))
                               :msg fail-msg
                               :token token)))))
-    (when value
+    (when value-set-p
       (finish future value token (lambda () (remove-query token))))
     (if (eq (query-state query) :finished)
         ;; if the query is finished, remove it from state tracking.
@@ -174,6 +178,7 @@
 (defun test (query-form)
   (as:start-event-loop
     (lambda ()
+      (future-handler-case
         (alet ((sock (connect "127.0.0.1" 28015)))
           (future-handler-case
             (let ((query (make-instance 'query)))
@@ -186,5 +191,7 @@
                 (as:close-socket sock)))
             (error (e)
               (format t "Query error: ~a~%" e)
-              (as:close-socket sock)))))))
+              (as:close-socket sock))))
+        (error (e)
+          (format t "Error: ~a~%" e))))))
 

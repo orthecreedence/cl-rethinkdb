@@ -7,4 +7,7 @@
    want a bunch of unused partial queries laying around, but we also don't want
    to get rid of queries that may be used. This parameter lets the app tune how
    many seconds pass between when a partial result from a query returns and when
-   that query is garbage collected. Set to nil to disable.")
+   that query is garbage collected. Set to nil to disable.
+   
+   Also keep in mind that queries that finish immediately or return errors are
+   immediately garbage collected.")
