@@ -94,7 +94,6 @@
       (when (<= response-size (length response-bytes))
         response-bytes))))
 
-(defparameter *glob* nil)
 (defun parse-response (response &key (array-type :array) (object-type :hash))
   "Parses a RethinkDB response (deserialized into protobuf classes) into a
    lispy/readable format.
@@ -109,7 +108,6 @@
          (value-set-p nil))
     ;; by default query is finished
     (setf (query-state query) :finished)
-    (setf *glob* response)
     (cond ((eq response-type +response-response-type-success-atom+)
            (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type array-type :object-type object-type)
                  value-set-p t))
