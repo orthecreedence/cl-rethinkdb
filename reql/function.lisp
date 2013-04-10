@@ -33,16 +33,3 @@
                                collect (list a `(var ,n))))
        (make-function ',arg-nums (wrap-in-term (r ,@body))))))
 
-(cl-rethinkdb::test
-  (r:r (:insert (:table "omg")
-         '((("name" . "andrew") ("age" . 26))
-           (("name" . "larry") ("age" . 52))
-           (("name" . "bernard") ("age" . 26))
-           (("name" . "crendalin burgerhouser") ("age" . 54))
-           (("name" . "dee lynn") ("age" . 52))))))
-
-(let ((q (r:r (:group-by (:table "omg") "age" r::count))))
-  (pprint q)
-  ;(cl-rethinkdb::test q)
-  )
-

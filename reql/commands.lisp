@@ -33,7 +33,9 @@
                      +term-term-type-inner-join+
                      +term-term-type-outer-join+
                      +term-term-type-eq-join+
-                     +term-term-type-zip+)
+                     +term-term-type-zip+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)
       (and (is-term +term-term-type-datum+ object)
            (= (type (datum object)) +datum-datum-type-r-array+))))
@@ -43,7 +45,9 @@
   (or (is-term (list +term-term-type-make-array+
                      +term-term-type-append+
                      +term-term-type-db-list+
-                     +term-term-type-table-list+)
+                     +term-term-type-table-list+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun is-boolean (object)
@@ -58,13 +62,16 @@
                      +term-term-type-not+
                      +term-term-type-contains+
                      +term-term-type-any+
-                     +term-term-type-all+)
+                     +term-term-type-all+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun is-object (object)
   "Determines if an object is an object type."
   (or (typep object 'alist)
       (typep object 'hash-table)
+      (is-function object)
       (is-term (list +term-term-type-get+
                      +term-term-type-implicit-var+
                      +term-term-type-getattr+
@@ -81,26 +88,34 @@
                      +term-term-type-db-drop+
                      +term-term-type-table-create+
                      +term-term-type-table-drop+
-                     +term-term-type-foreach+)
+                     +term-term-type-foreach+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun is-string (object)
   "Determines if an object can be used as a string term."
   (or (stringp object)
+      (is-function object)
       (is-term (list +term-term-type-add+
-                     +term-term-type-var+)
+                     +term-term-type-var+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun is-number (object)
   "Determines if an object can be used as a number term."
   (or (realp object)
+      (is-function object)
       (is-term (list +term-term-type-add+
                      +term-term-type-sub+
                      +term-term-type-mul+
                      +term-term-type-div+
                      +term-term-type-mod+
                      +term-term-type-count+
-                     +term-term-type-var+)
+                     +term-term-type-var+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun is-pkey (object)
@@ -113,15 +128,15 @@
   "Test if an object is a term function or reql-function object."
   (or (is-term (list +term-term-type-func+
                      +term-term-type-make-obj+
-                     +term-term-type-javascript+)
+                     +term-term-type-javascript+
+                     +term-term-type-funcall+
+                     +term-term-type-branch+)
                object)))
 
 (defun wrap-in-term (object)
   "Make sure a sequence type is wrapped in a term."
   (cond ((typep object 'term)
          object)
-        ((typep object '(or object object-collection))
-         (term-from-datum (create-datum object)))
         (t
          (term-from-datum (create-datum object)))))
 
@@ -480,38 +495,6 @@
 ;; -----------------------------------------------------------------------------
 ;; reductions
 ;; -----------------------------------------------------------------------------
-
-;; how to make "avg" function:
-; args {
-;   type: FUNC
-;   args {
-;     type: MAKE_ARRAY
-;     args {
-;       type: DATUM
-;       datum {
-;         type: R_NUM
-;         r_num: 1
-;       }
-;     }
-;   }
-;   args {
-;     type: MAKE_OBJ
-;     optargs {
-;       key: "AVG"
-;       val {
-;         type: VAR
-;         args {
-;           type: DATUM
-;           datum {
-;             type: R_NUM
-;             r_num: 1
-;           }
-;         }
-;       }
-;     }
-;   }
-; }
-
 (defvar count
   (term-object '(("COUNT" . t)))
   "A count reduction object.")
@@ -527,13 +510,13 @@
 ;; -----------------------------------------------------------------------------
 ;; document manipulation
 ;; -----------------------------------------------------------------------------
-(defcommand attr (field object)
+(defcommand attr (object field)
   "Grab an object attribute from an object. Can be nested:
 
      (attr \"name\" (attr \"user\" (row)))
 
    Would be r.row(\"user\")(\"name\") in JS."
-  (assert (stringp field))
+  (assert (is-string field))
   (assert (is-object object))
   (create-term +term-term-type-getattr+
                (list (wrap-in-term object)
@@ -548,7 +531,7 @@
    Which is a quicker way of saying:
 
      (attr \"age\" (row))"
-  (assert (typep field '(or string null)))
+  (assert (is-string field))
   (let ((row (create-term +term-term-type-implicit-var+)))
     (if field
         (attr row field)
@@ -736,15 +719,58 @@
 ;; -----------------------------------------------------------------------------
 ;; control structures
 ;; -----------------------------------------------------------------------------
-(defcommand do ())
-(defcommand branch ())
-(defcommand foreach ())
-(defcommand error ())
+(defcommand do (function &rest args)
+  "Evaluate the given function in the contex of the given arguments."
+  (assert (is-function function))
+  (assert-fn-args function (length args))
+  (create-term +term-term-type-funcall+
+               (cl:append (list (wrap-in-term function))
+                          (loop for a in args collect (wrap-in-term a)))))
+
+(defcommand branch (bool true-expr false-expr)
+  "Given a form that evaluates to a boolean, run the true-expr if it results in
+   true, and false-expr if it results in false."
+  (assert (is-boolean bool))
+  (create-term +term-term-type-branch+
+               (list (wrap-in-term bool)
+                     (wrap-in-term true-expr)
+                     (wrap-in-term false-expr))))
+
+(defcommand foreach (sequence function)
+  "Given a sequence, run the given function on each item in the sequence. The
+   function takes only one argument."
+  (assert (is-sequence sequence))
+  (assert (is-function function))
+  (assert-fn-args function 1)
+  (create-term +term-term-type-foreach+
+               (list (wrap-in-term sequence)
+                     (wrap-in-term function))))
+
+(defcommand error (message)
+  "Throw a runtime error with the given message."
+  (assert (is-string message))
+  (create-term +term-term-type-error+ (list (wrap-in-term message))))
+
 (defcommand expr (object)
   "Make sure the passed object is able to be passed as an object in a query."
   (wrap-in-term object))
 
-(defcommand js ())
-(defcommand coerce-to ())
-(defcommand typeof ())
+(defcommand js (javascript-str)
+  "Takes a string of javascript and executes it on Rethink's V8 engine. Can also
+   evaluate to a function and be used in places where functions are accepted,
+   however it is always preferred to us (fn ...) instead."
+  (assert (is-string javascript-str))
+  (create-term +term-term-type-javascript+ (list (wrap-in-term javascript-str))))
+
+(defcommand coerce-to (object type)
+  "Convert the given object to the specified type. To determine the type of an
+   object, typeof may be used."
+  (assert (is-string type))
+  (create-term +term-term-type-coerce-to+
+               (list (wrap-in-term object)
+                     (wrap-in-term type))))
+
+(defcommand typeof (object)
+  "Return the string type of the given object."
+  (create-term +term-term-type-typeof+ (list (wrap-in-term object))))
 
