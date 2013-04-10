@@ -35,3 +35,16 @@ The `cl-rethinkdb-reql:r` macro provides a makeshift DSL for constructing
 queries. It does this instead of using a direct export because the query
 language defines a lot of pre-defined common lisp functions which, if
 imported to an application, could screw things up quite a bit.
+
+`cl-rethinkdb-reql` has the nickname `r` to match the query specification a bit
+closer.
+
+Sometimes you'll need to pass an anonymous function to a query command. For this
+you can use `r:fn`:
+
+```common-lisp
+(r:r
+  (:filter (:table "users")
+           (r:fn (user)
+             (:< (:attr user "age") 30))))
+```

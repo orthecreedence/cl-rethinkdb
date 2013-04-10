@@ -46,6 +46,7 @@
                      +term-term-type-append+
                      +term-term-type-db-list+
                      +term-term-type-table-list+
+                     +term-term-type-var+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)))
@@ -63,6 +64,7 @@
                      +term-term-type-contains+
                      +term-term-type-any+
                      +term-term-type-all+
+                     +term-term-type-var+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)))
@@ -74,6 +76,7 @@
       (is-function object)
       (is-term (list +term-term-type-get+
                      +term-term-type-implicit-var+
+                     +term-term-type-var+
                      +term-term-type-getattr+
                      +term-term-type-reduce+
                      +term-term-type-nth+
@@ -132,6 +135,7 @@
                      +term-term-type-make-obj+
                      +term-term-type-javascript+
                      +term-term-type-funcall+
+                     +term-term-type-var+
                      +term-term-type-branch+)
                object)))
 
@@ -516,8 +520,8 @@
      (attr \"name\" (attr \"user\" (row)))
 
    Would be r.row(\"user\")(\"name\") in JS."
-  (assert (is-string field))
   (assert (is-object object))
+  (assert (is-string field))
   (create-term +term-term-type-getattr+
                (list (wrap-in-term object)
                      (wrap-in-term field))))

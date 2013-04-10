@@ -196,3 +196,9 @@
         (error (e)
           (format t "Error: ~a~%" e))))))
 
+(test
+  (r:r
+    (:filter (:table "users")
+             (r::fn (user)
+               (:< (:attr user "age") 50)))))
+
