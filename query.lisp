@@ -162,14 +162,17 @@
     ;; save the query with the token so it can be looked up later
     (save-query token query-tracker)
     ;; send the query, 
-    (alet ((response-bytes (send-query sock query)))
-      (let* ((response (make-instance 'response))
-             (size (length response-bytes)))
-        (pb:merge-from-array response response-bytes 0 size)
-        (handler-case
-          (parse-response response :array-type array-type :object-type object-type)
-          (error (e)
-            (format t "Unhandled response parsing error: ~a~%" e)))))
+    (future-handler-case
+      (alet ((response-bytes (send-query sock query)))
+        (let* ((response (make-instance 'response))
+               (size (length response-bytes)))
+          (pb:merge-from-array response response-bytes 0 size)
+          (handler-case
+            (parse-response response :array-type array-type :object-type object-type)
+            (error (e)
+              (format t "Unhandled response parsing error: ~a~%" e)))))
+      ;; forward all errors while sending yo our run future
+      (error (e) (signal-error future e)))
     (setf (query-state query-tracker) :sent)
     (values future token)))
 
