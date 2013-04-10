@@ -661,7 +661,8 @@
   "Determine equality of a number of objects."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-eq+
                (loop for o in objects
                      collect (wrap-in-term o))))
@@ -670,7 +671,8 @@
   "Determine inequality of a number of objects."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-ne+
                (loop for o in objects
                      collect (wrap-in-term o))))
@@ -679,7 +681,8 @@
   "Determine if objects are less than each other."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-lt+
                (loop for o in objects
                      collect (wrap-in-term o))))
@@ -688,7 +691,8 @@
   "Determine if objects are less than/equal to each other."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-le+
                (loop for o in objects
                      collect (wrap-in-term o))))
@@ -697,7 +701,8 @@
   "Determine if objects are greater than each other."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-gt+
                (loop for o in objects
                      collect (wrap-in-term o))))
@@ -706,7 +711,8 @@
   "Determine if objects are greater than/equal to each other."
   (push object objects)
   (dolist (object objects)
-    (assert (is-object object)))
+    (assert (or (is-number object)
+                (is-object object))))
   (create-term +term-term-type-ge+
                (loop for o in objects
                      collect (wrap-in-term o))))
