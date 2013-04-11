@@ -10,21 +10,23 @@
     (format s "~_token: ~s " (state-token state))
     (format s "~_queries: ~s" (hash-table-count (active-queries state)))))
 
-(defclass query-tracker ()
-  ((state :accessor query-state :initarg :state :initform :new
+(defclass cursor ()
+  ((state :accessor cursor-state :initarg :state :initform :new
      :documentation "Describes the current state of the query (new, complete, etc).")
-   (future :accessor query-future :initarg :future :initform nil
+   (future :accessor cursor-future :initarg :future :initform nil
      :documentation "Holds the future that will be finished with the results from this query.")
-   (last-change :accessor query-last-change :initform 0
+   (token :accessor cursor-token :initarg :token :initform nil
+     :documentation "Holds the token for this query.")
+   (last-change :accessor cursor-last-change :initform 0
      :documentation "Tracks the last time the query changed state."))
   (:documentation
     "The query class holds the state of a query, as well as the future that will
      be finished when the query returns results."))
 
-(defmethod (setf query-state) :after (x (query query-tracker))
+(defmethod (setf query-state) :after (x (query cursor))
   "Track whenever the state changes in a query."
   (declare (ignore x))
-  (setf (query-last-change query) (get-internal-real-time)))
+  (setf (cursor-last-change query) (get-internal-real-time)))
 
 (define-condition query-failed (simple-error)
   ((token :reader query-failed-token :initarg :token :initform nil)
@@ -103,11 +105,11 @@
   (let* ((response-type (type response))
          (token (token response))
          (query (get-query token))
-         (future (query-future query))
+         (future (cursor-future query))
          (value nil)
          (value-set-p nil))
     ;; by default query is finished
-    (setf (query-state query) :finished)
+    (setf (cursor-state query) :finished)
     (cond ((eq response-type +response-response-type-success-atom+)
            (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type array-type :object-type object-type)
                  value-set-p t))
@@ -118,7 +120,7 @@
            (setf value (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type array-type :object-type object-type)
                  value-set-p t)
            ;; mark query as a partiel
-           (setf (query-state query) :partial))
+           (setf (cursor-state query) :partial))
           ((or (find response-type (list +response-response-type-client-error+
                                          +response-response-type-compile-error+
                                          +response-response-type-runtime-error+)))
@@ -134,7 +136,7 @@
                               :token token)))))
     (when value-set-p
       (finish future value token (lambda () (remove-query token))))
-    (if (eq (query-state query) :finished)
+    (if (eq (cursor-state query) :finished)
         ;; if the query is finished, remove it from state tracking.
         (remove-query token)
         ;; if the query is a partial and has more results, let it stick around
@@ -149,32 +151,70 @@
   (declare (ignore db))
   (do-connect host port :read-timeout read-timeout))
 
-(defun run (sock query &key (array-type :array) (object-type :hash))
+(defun disconnect (sock)
+  "Disconnect a RethinkDB connection."
+  (do-close sock))
+
+(defun next (cursor)
+  "Grab the next result from a cursor."
+  )
+
+(defun serialize-protobuf (protobuf-query)
+  "Serialize a RethinkDB protocol buffer, as well as add in the version/size
+   bytes to the beginning of the array."
+  (let* ((size (pb:octet-size protobuf-query))
+         (num-extra-bytes 8)
+         (extra-bytes (make-array num-extra-bytes :element-type '(unsigned-byte 8)))
+         (buf (make-array size :element-type '(unsigned-byte 8))))
+    (pb:serialize protobuf-query buf 0 size)
+    ;; write the version 32-bit integer, little-endian
+    (let ((ver cl-rethinkdb-proto:+version-dummy-version-v0-1+))
+      (dotimes (i 4)
+        (setf (aref extra-bytes i) (ldb (byte 8 (* i 8)) ver))))
+    ;; write the 32-bit query size
+    (dotimes (i 4)
+      (setf (aref extra-bytes (+ i 4)) (ldb (byte 8 (* i 8)) size)))
+    (cl-async-util:append-array extra-bytes buf)))
+
+(defun run (sock query-form &key (array-type :array) (object-type :hash))
   "This function runs the given query, and returns a future that's finished when
    the query response comes in."
-  (let ((future (make-future))
-        (token (generate-token))
-        (query-tracker (make-instance 'query-tracker)))
-    ;; save the future into the query tracker
-    (setf (query-future query-tracker) future)
+  (let* ((future (make-future))
+         (token (generate-token))
+         (query (make-instance 'rdp:query))
+         (cursor (make-instance 'cursor
+                                :token token
+                                :future future)))
+    (setf (type query) rdp:+query-query-type-start+
+          (query query) query-form)
     ;; set the token into the query
     (setf (token query) (the fixnum token))
     ;; save the query with the token so it can be looked up later
-    (save-query token query-tracker)
-    ;; send the query, 
+    (save-query token cursor)
+    ;; serialize/send the query
     (future-handler-case
-      (alet ((response-bytes (send-query sock query)))
-        (let* ((response (make-instance 'response))
-               (size (length response-bytes)))
-          (pb:merge-from-array response response-bytes 0 size)
-          (handler-case
-            (parse-response response :array-type array-type :object-type object-type)
-            (error (e)
-              (format t "Unhandled response parsing error: ~a~%" e)))))
+      (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
+              (response (make-instance 'response))
+              (size (length response-bytes)))
+        (pb:merge-from-array response response-bytes 0 size)
+        (handler-case
+          (parse-response response :array-type array-type :object-type object-type)
+          (error (e)
+            (format t "Unhandled response parsing error: ~a~%" e))))
       ;; forward all errors while sending yo our run future
       (error (e) (signal-error future e)))
-    (setf (query-state query-tracker) :sent)
+    (setf (cursor-state cursor) :sent)
     (values future token)))
+
+(defun stop (conn token)
+  "Stop a query."
+  (let ((future (make-future))
+        (query (make-instance 'rdp:query)))
+    (setf (token query) (the fixnum token)
+          (type query) +query-query-type-stop+)
+    (wait-for (do-send conn (serialize-protobuf query))
+      (finish future))
+    future))
 
 (defun test (query-form)
   (as:start-event-loop
@@ -182,23 +222,49 @@
       (future-handler-case
         (alet ((sock (connect "127.0.0.1" 28015)))
           (future-handler-case
-            (let ((query (make-instance 'query)))
-              (setf (type query) rdp:+query-query-type-start+
-                    (query query) query-form)
-              (multiple-future-bind (response token)
-                  (run sock query :array-type :array :object-type :alist)
-                (format t "---response(~a)---" token)
-                (pprint response)
-                (as:close-socket sock)))
+            (multiple-future-bind (response token)
+                (run sock query-form :array-type :array :object-type :alist)
+              (format t "---response(~a)---" token)
+              (pprint response)
+              (as:close-socket sock))
             (error (e)
               (format t "Query error: ~a~%" e)
               (as:close-socket sock))))
         (error (e)
           (format t "Error: ~a~%" e))))))
 
-(test
-  (r:r
-    (:filter (:table "users")
-             (r::fn (user)
-               (:< (:attr user "age") 50)))))
+(defun names ()
+  (let* ((names '("andrew" "bernard" "lola" "mary" "hepatitis"
+                  "crendalin burgerhouser" "vinnie" "ralph" "john"
+                  "connie" "vlad" "attila" "candie" "mandy" "sandy"
+                  "philip" "renny" "stimpy" "moe" "larry" "curly"))
+         (num-names (length names)))
+    (as:start-event-loop
+      (lambda ()
+        (future-handler-case
+          (alet* ((conn (connect "127.0.0.1" 28015)))
+            (labels ((make-user (&optional (i 0))
+                       (let ((name (nth (random num-names) names))
+                             (age (1+ (random 100))))
+                         (format t "Adding user: ~s~%" (list name age))
+                         (wait-for
+                           (run conn (r (:insert (:table "users") `(("name" . ,name) ("age" . ,age)))))
+                           (when (< i 100)
+                             (make-user (+ i 1)))))))
+              (make-user)))
+          (error (e) (format t "Err: ~a~%" e))))
+      :catch-app-errors t)))
+
+(defun multi ()
+  (as:start-event-loop
+    (lambda ()
+      (future-handler-case
+        (alet ((conn (connect "127.0.0.1" 28015 :read-timeout 1)))
+          (multiple-future-bind (res token)
+              (run conn (r (:table "omg")) :array-type :list :object-type :alist)
+            (format t "res: ~s~%" res)
+            (alet ((res (run conn (r (:table "omg")) :array-type :list :object-type :alist)))
+              (format t "res: ~s~%" res)
+              (disconnect conn))))
+        (error (e) (format t "ERR: ~a~%" e))))))
 
