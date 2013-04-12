@@ -19,6 +19,6 @@
 	 (:file "commands")
 	 (:file "dsl"))
 	:depends-on ("protocol" "config"))
-   (:file "query" :depends-on (reql "protocol" "config"))
-   (:file "connection" :depends-on (reql "query" "config"))))
+   (:file "connection" :depends-on (reql "config"))
+   (:file "query" :depends-on (reql "protocol" "config" "connection"))))
 

@@ -75,9 +75,10 @@
    token"
   (gethash token (active-queries state)))
 
-(defun remove-cursor (token &key (state *state*))
+(defun remove-cursor (cursor &key (state *state*))
   "Remove a cursor/token from state tracking."
-  (remhash token (active-queries state)))
+  (let ((token (cursor-token cursor)))
+    (remhash token (active-queries state))))
 
 (defun make-response-handler ()
   "This function returns a closure that can be called multiple times with data
@@ -118,16 +119,18 @@
     (setf (cursor-state cursor) :finished)
     (cond ((eq response-type +response-response-type-success-atom+)
            ;; we have an atom, finish the future with the atom value.
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0) :array-type *sequence-type* :object-type *object-type*)
+           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0)
+                                                         :array-type *sequence-type*
+                                                         :object-type *object-type*)
                  value-set-p t))
           ((eq response-type +response-response-type-success-sequence+)
            ;; we have a sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type *sequence-type* :object-type *object-type*)
+           (setf (cursor-results cursor) (response response)
                  value cursor
                  value-set-p t))
           ((eq response-type +response-response-type-success-partial+)
            ;; we have a partial sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (cl-rethinkdb-reql::datum-to-lisp (response response) :array-type *sequence-type* :object-type *object-type*)
+           (setf (cursor-results cursor) (response response)
                  value cursor
                  value-set-p t
                  (cursor-state cursor) :partial))
@@ -151,7 +154,7 @@
       (finish future value token))
     ;; if the query is finished, remove it from state tracking.
     (when (eq (cursor-state cursor) :finished)
-      (remove-cursor token)))
+      (remove-cursor cursor)))
   response)
 
 (defun connect (host port &key db use-outdated (read-timeout 5))
@@ -178,25 +181,6 @@
 (defun disconnect (sock)
   "Disconnect a RethinkDB connection."
   (do-close sock))
-
-(defun next (sock cursor)
-  "Grab the next result from a cursor. Returns a future since it may have to
-   get more results from the server."
-  (let ((future (make-future))
-        (num-results (length (cursor-results cursor)))
-        (cur-result (cursor-current-result cursor))
-        (token (cursor-token cursor)))
-    (cond ((< num-results cur-result)
-           ;; shouldn't be here, quit calling next!
-           )
-          ((= cur-result num-results)
-           (attach (more sock token)
-             (lambda (&rest args)
-               (apply #'finish (append (list future) args)))))
-          (t
-           (finish future (aref (cursor-results cursor) cur-result) token)))
-    (incf (cursor-current-result cursor))
-    future))
 
 (defun serialize-protobuf (protobuf-query)
   "Serialize a RethinkDB protocol buffer, as well as add in the version/size
@@ -249,6 +233,28 @@
         (signal-error future e)))
     (setf (cursor-state cursor) :sent)
     (values future token)))
+
+(defun next (sock cursor)
+  "Grab the next result from a cursor. Returns a future since it may have to
+   get more results from the server."
+  (let ((future (make-future))
+        (num-results (length (cursor-results cursor)))
+        (cur-result (cursor-current-result cursor))
+        (token (cursor-token cursor)))
+    (cond ((< num-results cur-result)
+           ;; shouldn't be here, quit calling next!
+           )
+          ((= cur-result num-results)
+           (alet ((new-cursor (more sock token)))
+             (finish future (next sock new-cursor))))
+          (t
+           (finish future (cl-rethinkdb-reql::datum-to-lisp
+                            (aref (cursor-results cursor) cur-result)
+                            :array-type *sequence-type*
+                            :object-type *object-type*)
+                   token)))
+    (incf (cursor-current-result cursor))
+    future))
 
 (defun more (sock token)
   "Continue a query."
@@ -308,12 +314,27 @@
             (labels ((make-user (&optional (i 0))
                        (let ((name (nth (random num-names) names))
                              (age (1+ (random 100))))
-                         (format t "Adding user: ~s~%" (list name age))
+                         (format t "i: ~a~%" i)
                          (wait-for
-                           (run sock (r (:insert (:table "users") `(("name" . ,name) ("age" . ,age)))))
-                           (when (< i 100)
+                           (run sock (r (:insert (:table "users") `(("name" . ,name)
+                                                                    ("age" . ,age)))))
+                           (when (< i 10000)
                              (make-user (+ i 1)))))))
               (make-user)))
           (error (e) (format t "Err: ~a~%" e))))
       :catch-app-errors t)))
 
+(defun cursor-test ()
+  (as:with-event-loop ()
+    (alet* ((sock (connect "127.0.0.1" 28015 :db "test" :read-timeout 30))
+            (cursor (run sock (r (:table "users")))))
+      (format t "cursor: ~a~%" cursor)
+      (labels ((get-next (&optional (i 0))
+                 (alet ((rec (next sock cursor)))
+                   (format t "rec: ~s~%" rec)
+                   (if (< i 1100)
+                       (as:delay (lambda () (get-next (1+ i))) :time .01)
+                       (progn
+                         (remove-cursor cursor)
+                         (disconnect sock))))))
+        (get-next)))))
