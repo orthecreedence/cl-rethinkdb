@@ -24,11 +24,9 @@
          ;; response data, returning the full data (byte array) only when all
          ;; of the response has been received.
          (response-handler (make-response-handler)))
-    (format t "send: ~a~%" bytes)
     (as:write-socket-data sock bytes
       :read-cb (lambda (sock data)
                  (declare (ignore sock))
-                 (format t "recv: ~a~%" (length data))
                  (let ((full-response-bytes (funcall response-handler data)))
                    (when full-response-bytes
                      (finish future full-response-bytes))))
