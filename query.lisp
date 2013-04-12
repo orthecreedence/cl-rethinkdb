@@ -218,8 +218,8 @@
     (setf (token query) (the fixnum token))
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
-    ;; serialize/send the query
     (future-handler-case
+      ;; serialize/send/parse the query
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
               (response (make-instance 'rdp:response))
               (size (length response-bytes)))
@@ -228,33 +228,11 @@
           (parse-response response)
           (error (e)
             (signal-error future e))))
-      ;; forward all errors while sending yo our run future
+      ;; forward all errors while sending to our `run` future
       (error (e)
         (signal-error future e)))
     (setf (cursor-state cursor) :sent)
     (values future token)))
-
-(defun next (sock cursor)
-  "Grab the next result from a cursor. Returns a future since it may have to
-   get more results from the server."
-  (let ((future (make-future))
-        (num-results (length (cursor-results cursor)))
-        (cur-result (cursor-current-result cursor))
-        (token (cursor-token cursor)))
-    (cond ((< num-results cur-result)
-           ;; shouldn't be here, quit calling next!
-           )
-          ((= cur-result num-results)
-           (alet ((new-cursor (more sock token)))
-             (finish future (next sock new-cursor))))
-          (t
-           (finish future (cl-rethinkdb-reql::datum-to-lisp
-                            (aref (cursor-results cursor) cur-result)
-                            :array-type *sequence-type*
-                            :object-type *object-type*)
-                   token)))
-    (incf (cursor-current-result cursor))
-    future))
 
 (defun more (sock token)
   "Continue a query."
@@ -264,14 +242,16 @@
     (setf (token query) (the fixnum token)
           (type query) +query-query-type-continue+
           (cursor-future cursor) future)
-    (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
-            (response (make-instance 'rdp:response))
-            (size (length response-bytes)))
-      (pb:merge-from-array response response-bytes 0 size)
-      (handler-case
-        (parse-response response)
-        (error (e)
-          (signal-error future e))))
+    (future-handler-case
+      (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
+              (response (make-instance 'rdp:response))
+              (size (length response-bytes)))
+        (pb:merge-from-array response response-bytes 0 size)
+        (handler-case
+          (parse-response response)
+          (error (e)
+            (signal-error future e))))
+      (error (e) (signal-error future e)))
     future))
 
 (defun stop (sock token)
@@ -282,6 +262,30 @@
           (type query) +query-query-type-stop+)
     (wait-for (do-send sock (serialize-protobuf query))
       (finish future))
+    future))
+
+(defun next (sock cursor)
+  "Grab the next result from a cursor. Always returns a future since it may have
+   to get more results from the server."
+  (let ((future (make-future))
+        (num-results (length (cursor-results cursor)))
+        (cur-result (cursor-current-result cursor))
+        (token (cursor-token cursor)))
+    (cond ((< num-results cur-result)
+           ;; shouldn't be here, quit calling next!
+           )
+          ((= cur-result num-results)
+           (future-handler-case
+             (alet ((new-cursor (more sock token)))
+               (finish future (next sock new-cursor)))
+             (error (e) (signal-error future e))))
+          (t
+           (finish future (cl-rethinkdb-reql::datum-to-lisp
+                            (aref (cursor-results cursor) cur-result)
+                            :array-type *sequence-type*
+                            :object-type *object-type*)
+                   token)))
+    (incf (cursor-current-result cursor))
     future))
 
 (defun test (query-form)
