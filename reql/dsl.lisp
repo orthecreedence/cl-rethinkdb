@@ -20,8 +20,8 @@
   (let ((macrolet-forms
           (loop for c in *commands*
                 for k = (intern (symbol-name c) :keyword)
-                collect `(,k (args &body body)
-                           `(,',c ,args ,@body)))))
+                collect `(,k (&rest args)
+                           `(,',c ,@args)))))
                 
   `(progn
      (macrolet (,@macrolet-forms)
