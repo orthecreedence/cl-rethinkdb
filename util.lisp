@@ -1,12 +1,6 @@
 (defpackage :cl-rethinkdb-util
   (:use :cl :cl-async-future)
   (:export #:forward-errors
-           #:alistp
-           #:objectp
-           #:object-collection-p
-           #:alist
-           #:object
-           #:object-collection
            #:do-list/vector
            #:do-hash/alist))
 (in-package :cl-rethinkdb-util)
@@ -16,27 +10,6 @@
   `(future-handler-case
      ,body-form
      (error (e) (signal-error ,future e))))
-
-(defun alistp (alist)
-  "Determine if the given object is an alist."
-  (flet ((true-cdr-p (element)
-           (and (consp element)
-                (cdr element))))
-    (and (listp alist)
-         (every #'true-cdr-p alist))))
-
-(defun objectp (object)
-  "Determine if an object is a hash table or alist."
-  (typep object 'object))
-
-(defun object-collection-p (collection)
-  "Test if an object is a collection (list or vector) or alists/hashes."
-  (and (subtypep (type-of collection) '(or list vector))
-       (every #'objectp collection)))
-
-(deftype alist () '(satisfies alistp))
-(deftype object () '(or hash-table alist))
-(deftype object-collection () '(satisfies object-collection-p))
 
 (defmacro do-list/vector ((bind-val list/vector) &body body)
   "Generifies looping over a list OR vector."

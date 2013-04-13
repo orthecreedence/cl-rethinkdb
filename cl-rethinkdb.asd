@@ -13,6 +13,7 @@
     :serial t
 	:components
 	((:file "package")
+	 (:file "types")
 	 (:file "datum")
 	 (:file "term")
 	 (:file "function")
