@@ -209,71 +209,71 @@ These are almost 100% compatible with the [ReQL specification](http://www.rethin
 so if you familiarize yourself with the query language, you will automatically
 get a good handle on the following.
 
-- db-drop (db-name) => object
-- db-list () => object
-- table-create (db table-name &key datacenter primary-key cache-size) => object
-- table-drop (db table-name) => object
-- table-list (db) => object
-- insert (table sequence/object &key upsert) => object
-- update (select object/function &key non-atomic) => object
-- replace (select object/function &key non-atomic) => object
-- delete (select) => object
-- db (db-name) => db
-- table (table-name) => sequence
-- get (table item-id) => object
-- between (sequence &key left right) => sequence
-- filter (sequence object/function) => sequence
-- inner-join (sequence1 sequence2 function) => sequence
-- outer-join (sequence1 sequence2 function) => sequence
-- eq-join (sequence1 field sequence2) => sequence
-- zip (sequence) => sequence
-- map (sequence function) => sequence
-- concat-map (sequence function) => sequence
-- order-by (sequence field &rest fields) => sequence
-- asc (field) => field
-- desc (field) => field
-- skip (sequence number) => sequence
-- limit (sequence number) => sequence
-- slice (sequence start end) => sequence
-- nth (sequence number) => object
-- union (sequence &rest sequences) => sequence
-- reduce (sequence function) => object
-- count (sequence) => number
-- distinct (sequence) => sequence
-- grouped-map-reduce (sequence function-group function-map function-reduce) => sequence
-- group-by (sequence &rest fields-then-reduction) => sequence
-- count-reduce () => function
-- sum-reduce (field) => function
-- avg-reduce (field) => function
-- attr (object field) => object
-- row (&optional field) => object
-- pluck (sequence/object field &rest fields) => sequence/object
-- without (sequence/object field &rest fields) => sequence/object
-- merge (object &rest objects) => object
-- append (array object) => array
-- contains (object string) => boolean
-- \+ (number/string &rest numbers/strings) => number/string
-- \- (number &rest numbers) => number
-- \* (number &rest numbers) => number
-- / (number &rest numbers) => number
-- % (number mod) => number
-- && (boolean &rest booleans) => boolean
-- || (boolean &rest booleans) => boolean
-- == (object &rest objects) => boolean
-- != (object &rest objects) => boolean
-- < (object &rest objects) => boolean
-- <= (object &rest objects) => boolean
-- > (object &rest objects) => boolean
-- >= (object &rest objects) => boolean
-- ~ (boolean) => boolean
-- do (function &rest args) => object
-- branch (boolean true-expr false-expr) => object
-- foreach (sequence function) => object
-- error (message) => error
-- expr (lisp-object) => RethinkDB object
-- js (javascript-str) => object/function
-- coerce-to (object type) => object
-- typeof (object) => type-string
+- `db-drop (db-name) => object`
+- `db-list () => object`
+- `table-create (db table-name &key datacenter primary-key cache-size) => object`
+- `table-drop (db table-name) => object`
+- `table-list (db) => object`
+- `insert (table sequence/object &key upsert) => object`
+- `update (select object/function &key non-atomic) => object`
+- `replace (select object/function &key non-atomic) => object`
+- `delete (select) => object`
+- `db (db-name) => db`
+- `table (table-name) => sequence`
+- `get (table item-id) => object`
+- `between (sequence &key left right) => sequence`
+- `filter (sequence object/function) => sequence`
+- `inner-join (sequence1 sequence2 function) => sequence`
+- `outer-join (sequence1 sequence2 function) => sequence`
+- `eq-join (sequence1 field sequence2) => sequence`
+- `zip (sequence) => sequence`
+- `map (sequence function) => sequence`
+- `concat-map (sequence function) => sequence`
+- `order-by (sequence field &rest fields) => sequence`
+- `asc (field) => field`
+- `desc (field) => field`
+- `skip (sequence number) => sequence`
+- `limit (sequence number) => sequence`
+- `slice (sequence start end) => sequence`
+- `nth (sequence number) => object`
+- `union (sequence &rest sequences) => sequence`
+- `reduce (sequence function) => object`
+- `count (sequence) => number`
+- `distinct (sequence) => sequence`
+- `grouped-map-reduce (sequence function-group function-map function-reduce) => sequence`
+- `group-by (sequence &rest fields-then-reduction) => sequence`
+- `count-reduce () => function`
+- `sum-reduce (field) => function`
+- `avg-reduce (field) => function`
+- `attr (object field) => object`
+- `row (&optional field) => object`
+- `pluck (sequence/object field &rest fields) => sequence/object`
+- `without (sequence/object field &rest fields) => sequence/object`
+- `merge (object &rest objects) => object`
+- `append (array object) => array`
+- `contains (object string) => boolean`
+- `\+ (number/string &rest numbers/strings) => number/string`
+- `\- (number &rest numbers) => number`
+- `\* (number &rest numbers) => number`
+- `/ (number &rest numbers) => number`
+- `% (number mod) => number`
+- `&& (boolean &rest booleans) => boolean`
+- `|| (boolean &rest booleans) => boolean`
+- `== (object &rest objects) => boolean`
+- `!= (object &rest objects) => boolean`
+- `< (object &rest objects) => boolean`
+- `<= (object &rest objects) => boolean`
+- `> (object &rest objects) => boolean`
+- `>= (object &rest objects) => boolean`
+- `~ (boolean) => boolean`
+- `do (function &rest args) => object`
+- `branch (boolean true-expr false-expr) => object`
+- `foreach (sequence function) => object`
+- `error (message) => error`
+- `expr (lisp-object) => RethinkDB object`
+- `js (javascript-str) => object/function`
+- `coerce-to (object type) => object`
+- `typeof (object) => type-string`
 
 Errors
 ------
