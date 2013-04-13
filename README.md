@@ -70,25 +70,6 @@ Sending queries and getting results
 Once you've constructed a query via [r](#r-macro), you need to send it to the
 server.
 
-### cursor (class)
-The cursor class keeps track of queries where a sequence of results is returned
-(as opposed to an atom). It is generally opaque, having no public accessors.
-
-Cursor functions/methods:
-
-- [cursorp](#cursorp-function)
-- [next](#next-function)
-- [has-next](#has-next-function)
-- [to-array](#to-array-function)
-- [stop](#stop-function)
-
-### cursorp (function)
-```common-lisp
-(defun cursorp (cursor))
-  => t/nil
-```
-Convenience function to tell if the given object is a cursor.
-
 ### connect (function)
 ```common-lisp
 (defun connect (host port &key db use-outdated (read-timeout 5)))
@@ -127,6 +108,25 @@ Example
   (format t "My user is: ~s~%" value)
   (disconnect sock))
 ```
+
+### cursor (class)
+The cursor class keeps track of queries where a sequence of results is returned
+(as opposed to an atom). It is generally opaque, having no public accessors.
+
+Cursor functions/methods:
+
+- [cursorp](#cursorp-function)
+- [next](#next-function)
+- [has-next](#has-next-function)
+- [to-array](#to-array-function)
+- [stop](#stop-function)
+
+### cursorp (function)
+```common-lisp
+(defun cursorp (cursor))
+  => t/nil
+```
+Convenience function to tell if the given object is a cursor.
 
 ### next (function)
 ```common-lisp
