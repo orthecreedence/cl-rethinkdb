@@ -7,9 +7,9 @@ specification](http://www.rethinkdb.com/api/#js).
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
 and makes heavy use of [cl-async's futures](http://orthecreedence.github.io/cl-async/future).
 
-__!!! This driver is unfinished !!!__ Also, the query language may change in
-newer versions of RethinkDB and break the driver. I'll do my best to stay on top
-of changes but I only have five arms.
+This driver is built so that later on, more than one TCP backend can be used.
+Right now, the only one implemented is cl-async, but usocket/IOLib could just as
+easily be used if *someone* puts in the time.
 
 Documentation
 =============
@@ -277,6 +277,9 @@ get a good handle on the following.
 
 Errors
 ------
+These are the errors you may encounter while using this driver. Most (if not
+all) errors will be signalled on a future instead of thrown directly. Errors
+on a future can be caught via [future-handler-case](http://orthecreedence.github.io/cl-async/future#future-handler-case).
 
 ### query-error
 A general query error.
@@ -311,4 +314,8 @@ _extends [cursor-error](#cursor-error)_
 
 Thrown when [next](#next-function) is called on a cursor that has no more
 results. You can test this by using [has-next](#has-next-function).
+
+License
+-------
+MIT. Enjoy.
 
