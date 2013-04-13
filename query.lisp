@@ -171,7 +171,7 @@
              ;; because i'm paranoid
              (setf value-set-p nil))))
     (when value-set-p
-      (finish future value token))
+      (finish future value))
     ;; if the query is finished, remove it from state tracking.
     (when (eq (cursor-state cursor) :finished)
       (remove-cursor cursor)))
@@ -249,7 +249,7 @@
           (error (e)
             (signal-error future e)))))
     (setf (cursor-state cursor) :sent)
-    (values future token)))
+    future))
 
 (defun more (sock token)
   "Continue a query."
@@ -270,19 +270,18 @@
             (signal-error future e)))))
     future))
 
-(defun stop (sock token)
-  "Stop a query, and remove the cursor if it exists. This is the best way to
-   clean up a query you're finished with."
+(defun stop (sock cursor)
+  "Cleanup a cursor both locally and in the database. Returns a future that is
+   finished with *no values* once the stop operation has completed."
   (let ((future (make-future))
+        (token (cursor-token cursor))
         (query (make-instance 'rdp:query)))
     (setf (token query) (the fixnum token)
           (type query) +query-query-type-stop+)
     (forward-errors (future)
       (wait-for (do-send sock (serialize-protobuf query))
-        (let ((cursor (get-cursor token)))
-          (when cursor
-            (remove-cursor cursor))
-          (finish future))))
+        (remove-cursor cursor)
+        (finish future)))
     future))
 
 (defun next (sock cursor)
@@ -314,8 +313,7 @@
            (finish future (cl-rethinkdb-reql::datum-to-lisp
                             (aref (cursor-results cursor) cur-result)
                             :array-type *sequence-type*
-                            :object-type *object-type*)
-                   token)))
+                            :object-type *object-type*))))
     ;; keep the pointer up to date
     (incf (cursor-current-result cursor))
     future))
