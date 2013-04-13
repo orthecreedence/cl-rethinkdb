@@ -3,7 +3,7 @@
   (:nicknames :rdp))
 
 (defpackage :cl-rethinkdb-reql
-  (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-rethinkdb)
+  (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto)
   ;; steal some things from CL
   (:shadow #:replace
            #:delete
