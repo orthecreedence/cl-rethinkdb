@@ -349,7 +349,7 @@
           (future-handler-case
             (multiple-future-bind (res token)
                 (run sock query-form)
-              (format t "---response(~a)---~%" token)
+              (format t "---response(~a)---" token)
               (if (cursorp res)
                   (alet ((res (to-array sock res)))
                     (pprint res)

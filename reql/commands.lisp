@@ -375,15 +375,15 @@
 ;; -----------------------------------------------------------------------------
 ;; reductions
 ;; -----------------------------------------------------------------------------
-(defvar count
-  (term-object '(("COUNT" . t)))
-  "A count reduction object.")
+(defcommand count-reduce ()
+  "A count reduction object."
+  (term-object '(("COUNT" . t))))
 
-(defcommand sum (field)
+(defcommand sum-reduce (field)
   "Sum a field as a reduction."
   (term-object `(("SUM" . ,field))))
 
-(defcommand avg (field)
+(defcommand avg-reduce (field)
   "Average a field as a reduction."
   (term-object `(("AVG" . ,field))))
 

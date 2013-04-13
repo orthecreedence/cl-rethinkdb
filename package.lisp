@@ -2,8 +2,32 @@
   (:use :cl :protocol-buffer)
   (:nicknames :rdp))
 
-;; this is defined later, but we want it available for the next defpackage
-(defpackage :cl-rethinkdb-reql (:use :cl))
+(defpackage :cl-rethinkdb-reql
+  (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-rethinkdb)
+  ;; steal some things from CL
+  (:shadow #:replace
+           #:delete
+           #:get
+           #:map
+           #:nth
+           #:union
+           #:reduce
+           #:count
+           #:merge
+           #:append
+           #:+
+           #:-
+           #:*
+           #:/
+           #:>
+           #:>=
+           #:<
+           #:<=
+           #:do
+           #:error)
+  ;; only export our DSL functions
+  (:export #:r
+           #:fn))
 
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-async-future :cl-rethinkdb-reql)
@@ -26,5 +50,10 @@
            :next
            :has-next
            :to-array
-           :stop))
+           :stop
+
+           ;; export ReQL DSL functions
+           :r
+           :fn)
+  (:nicknames :r))
 
