@@ -60,8 +60,10 @@ Functions can be mixed in with `r` queries:
 ;; find all users older than 24
 (r (:filter (:table "users")
             (fn (user)
-              (:< 24 (attr user "age")))))
+              (:< 24 (:attr user "age")))))
 ```
+
+Note how inside the `fn` body, we're still using functions prefixed with `:`.
 
 Sending queries and getting results
 -----------------------------------
