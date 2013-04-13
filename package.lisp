@@ -2,6 +2,7 @@
   (:use :cl :protocol-buffer)
   (:nicknames :rdp))
 
+;; this is defined later, but we want it available for the next defpackage
 (defpackage :cl-rethinkdb-reql (:use :cl))
 
 (defpackage :cl-rethinkdb
