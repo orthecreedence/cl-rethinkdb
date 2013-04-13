@@ -119,6 +119,7 @@ Cursor functions/methods:
 - [next](#next-function)
 - [has-next](#has-next-function)
 - [to-array](#to-array-function)
+- [each](#each-function)
 - [stop](#stop-function)
 
 ### cursorp (function)
