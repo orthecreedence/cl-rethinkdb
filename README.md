@@ -184,6 +184,14 @@ through the returned future.
     (disconnect sock)))
 ```
 
+### each (function)
+```common-lisp
+(defun each (sock cursor function))
+  => future 
+```
+Call the given function on each of the results of a cursor. The returned future
+is finished when all results have been iterated over.
+
 ### stop (function)
 ```common-lisp
 (defun stop (sock cursor))

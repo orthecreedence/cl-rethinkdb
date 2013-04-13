@@ -274,14 +274,18 @@
   "Cleanup a cursor both locally and in the database. Returns a future that is
    finished with *no values* once the stop operation has completed."
   (let ((future (make-future))
-        (token (cursor-token cursor))
-        (query (make-instance 'rdp:query)))
-    (setf (token query) (the fixnum token)
-          (type query) +query-query-type-stop+)
-    (forward-errors (future)
-      (wait-for (do-send sock (serialize-protobuf query))
-        (remove-cursor cursor)
-        (finish future)))
+        (token (cursor-token cursor)))
+    (if (eq (cursor-state cursor) :partial)
+        (let ((query (make-instance 'rdp:query)))
+          (setf (token query) (the fixnum token)
+                (type query) +query-query-type-stop+)
+          (forward-errors (future)
+            (wait-for (do-send sock (serialize-protobuf query))
+              (remove-cursor cursor)
+              (finish future))))
+        (progn
+          (remove-cursor cursor)
+          (finish future)))
     future))
 
 (defun next (sock cursor)
@@ -320,7 +324,7 @@
 
 (defun has-next (cursor)
   "Determine if a cursor has more results."
-  (or (< (1+ (cursor-current-result cursor)) (length (cursor-results cursor)))
+  (or (< (cursor-current-result cursor) (length (cursor-results cursor)))
       (and (eq (cursor-state cursor) :partial))))
 
 (defun to-array (sock cursor)
@@ -337,6 +341,18 @@
                                     :array-type *sequence-type*
                                     :object-type *object-type*)))))
       (append-results (cursor-results cursor)))
+    future))
+
+(defun each (sock cursor function)
+  "Call the given function on every result in the given cursor."
+  (let ((future (make-future)))
+    (labels ((get-next ()
+               (if (has-next cursor)
+                   (alet ((result (next sock cursor)))
+                     (funcall function result)
+                     (get-next))
+                   (finish future))))
+      (get-next))
     future))
 
 (defun test_ (query-form)
