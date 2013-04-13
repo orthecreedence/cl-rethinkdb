@@ -42,7 +42,7 @@ This macro translates keyword functions into ReQL function calls:
 
 This translates to
 ```common-lisp
-(cl-rethinkdb-reql::limit (cl-rethinkdb-reql::table "users) 10)
+(cl-rethinkdb-reql::limit (cl-rethinkdb-reql::table "users") 10)
 ```
 
 ### fn (macro)
