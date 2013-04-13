@@ -401,6 +401,18 @@
                           (loop for f in fields
                                 collect (wrap-in-term f)))))
 
+(defcommand asc (field)
+  "Used in ordre-by queries to specify a field is ascending in order."
+  (assert (is-string field))
+  (create-term +term-term-type-asc+
+               (list (wrap-in-term field))))
+
+(defcommand desc (field)
+  "Used in ordre-by queries to specify a field is descending in order."
+  (assert (is-string field))
+  (create-term +term-term-type-desc+
+               (list (wrap-in-term field))))
+
 (defcommand skip (sequence number)
   "Skip a number of items in a sequence."
   (assert (is-sequence sequence))
