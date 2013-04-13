@@ -1,5 +1,39 @@
 (in-package :cl-rethinkdb)
 
+(define-condition query-error (simple-error)
+  ((token :reader query-error-token :initarg :token :initform nil)
+   (msg :reader query-error-msg :initarg :msg :initform ""))
+  (:report (lambda (c s) (format s "Query failed (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:documentation "A general query failure condition."))
+
+(define-condition query-client-error (query-error) ()
+  (:report (lambda (c s) (format s "Client error: Query (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:documentation "A client error condition."))
+
+(define-condition query-compile-error (query-error) ()
+  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:documentation "A query compile error condition."))
+  
+(define-condition query-runtime-error (query-error) ()
+  (:report (lambda (c s) (format s "Query runtime error (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:documentation "A query runtime error condition."))
+
+(define-condition cursor-error (simple-error)
+  ((token :reader cursor-error-token :initarg :token :initform nil)
+   (cursor :reader cursor-error-cursor :initarg :cursor :initform nil))
+  (:report (lambda (c s) (format s "Cursor error (~a): ~a" (cursor-error-token c) (cursor-error-cursor c))))
+  (:documentation "Describes a general query error."))
+
+(define-condition cursor-no-more-results (cursor-error) ()
+  (:report (lambda (c s) (format s "No more results on cursor (~a): ~a" (cursor-error-token c) (cursor-error-cursor c))))
+  (:documentation "Thrown when a cursor has no more results on it."))
+
+(define-condition cursor-overshot (cursor-error) ()
+  (:report (lambda (c s) (format s "Cursor overshot, don't call `next` without waiting for results (~a): ~a"
+                                 (cursor-error-token c)
+                                 (cursor-error-cursor c))))
+  (:documentation "Thrown when a cursor has no more results on it."))
+
 (defclass state ()
   ((token :accessor state-token :initform 0)
    (active-queries :accessor active-queries :initform (make-hash-table :test #'eq)))
@@ -27,10 +61,6 @@
     "The query class holds the state of a query, as well as the future that will
      be finished when the query returns results."))
 
-(defclass connection-options ()
-  ((kv :accessor conn-kv :initarg :kv :initform nil))
-  (:documentation "Holds per-connection options."))
-
 (defmethod (setf cursor-state) :after (x (cursor cursor))
   "Track whenever the state changes in a query."
   (declare (ignore x))
@@ -41,23 +71,13 @@
   (declare (ignore x))
   (setf (cursor-current-result cursor) 0))
 
-(define-condition query-failed (simple-error)
-  ((token :reader query-failed-token :initarg :token :initform nil)
-   (msg :reader query-failed-msg :initarg :msg :initform ""))
-  (:report (lambda (c s) (format s "Query failed (~a): ~a" (query-failed-token c) (query-failed-msg c))))
-  (:documentation "A general query failure condition."))
+(defun cursorp (cursor)
+  "Determine if the given object is a cursor."
+  (typep cursor 'cursor))
 
-(define-condition query-client-error (query-failed) ()
-  (:report (lambda (c s) (format s "Client error: Query (~a): ~a" (query-failed-token c) (query-failed-msg c))))
-  (:documentation "A client error condition."))
-
-(define-condition query-compile-error (query-failed) ()
-  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a" (query-failed-token c) (query-failed-msg c))))
-  (:documentation "A query compile error condition."))
-  
-(define-condition query-runtime-error (query-failed) ()
-  (:report (lambda (c s) (format s "Query runtime error (~a): ~a" (query-failed-token c) (query-failed-msg c))))
-  (:documentation "A query runtime error condition."))
+(defclass connection-options ()
+  ((kv :accessor conn-kv :initarg :kv :initform nil))
+  (:documentation "Holds per-connection options."))
 
 (defvar *state* (make-instance 'state)
   "Holds all tracking state for the RethinkDB driver.")
@@ -218,7 +238,7 @@
     (setf (token query) (the fixnum token))
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
-    (future-handler-case
+    (forward-errors (future)
       ;; serialize/send/parse the query
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
               (response (make-instance 'rdp:response))
@@ -227,10 +247,7 @@
         (handler-case
           (parse-response response)
           (error (e)
-            (signal-error future e))))
-      ;; forward all errors while sending to our `run` future
-      (error (e)
-        (signal-error future e)))
+            (signal-error future e)))))
     (setf (cursor-state cursor) :sent)
     (values future token)))
 
@@ -242,7 +259,7 @@
     (setf (token query) (the fixnum token)
           (type query) +query-query-type-continue+
           (cursor-future cursor) future)
-    (future-handler-case
+    (forward-errors (future)
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
               (response (make-instance 'rdp:response))
               (size (length response-bytes)))
@@ -250,18 +267,22 @@
         (handler-case
           (parse-response response)
           (error (e)
-            (signal-error future e))))
-      (error (e) (signal-error future e)))
+            (signal-error future e)))))
     future))
 
 (defun stop (sock token)
-  "Stop a query."
+  "Stop a query, and remove the cursor if it exists. This is the best way to
+   clean up a query you're finished with."
   (let ((future (make-future))
         (query (make-instance 'rdp:query)))
     (setf (token query) (the fixnum token)
           (type query) +query-query-type-stop+)
-    (wait-for (do-send sock (serialize-protobuf query))
-      (finish future))
+    (forward-errors (future)
+      (wait-for (do-send sock (serialize-protobuf query))
+        (let ((cursor (get-cursor token)))
+          (when cursor
+            (remove-cursor cursor))
+          (finish future))))
     future))
 
 (defun next (sock cursor)
@@ -273,72 +294,72 @@
         (token (cursor-token cursor)))
     (cond ((< num-results cur-result)
            ;; shouldn't be here, quit calling next!
-           )
+           (signal-error future (make-instance 'cursor-overshot
+                                               :token token
+                                               :cursor cursor)))
           ((= cur-result num-results)
-           (future-handler-case
-             (alet ((new-cursor (more sock token)))
-               (finish future (next sock new-cursor)))
-             (error (e) (signal-error future e))))
+           ;; we're out of results. if this was a partial, get more results,
+           ;; if not signal a "no more results" error
+           (if (eq (cursor-state cursor) :partial)
+               ;; moar plz
+               (forward-errors (future)
+                 (alet ((new-cursor (more sock token)))
+                   (finish future (next sock new-cursor))))
+               ;; lol none left!!!!
+               (signal-error future (make-instance 'cursor-no-more-results
+                                                   :token token
+                                                   :cursor cursor))))
           (t
+           ;; have a local result, send it directly into the future
            (finish future (cl-rethinkdb-reql::datum-to-lisp
                             (aref (cursor-results cursor) cur-result)
                             :array-type *sequence-type*
                             :object-type *object-type*)
                    token)))
+    ;; keep the pointer up to date
     (incf (cursor-current-result cursor))
     future))
 
-(defun test (query-form)
+(defun has-next (cursor)
+  "Determine if a cursor has more results."
+  (or (< (1+ (cursor-current-result cursor)) (length (cursor-results cursor)))
+      (and (eq (cursor-state cursor) :partial))))
+
+(defun to-array (sock cursor)
+  "Grab ALL results from a cursor. Returns a future finished with the final
+   array."
+  (let ((future (make-future))
+        (token (cursor-token cursor)))
+    (labels ((append-results (all-results)
+               (if (eq (cursor-state cursor) :partial)
+                   (wait-for (more sock token)
+                     (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
+                   (finish future (cl-rethinkdb-reql::datum-to-lisp
+                                    all-results
+                                    :array-type *sequence-type*
+                                    :object-type *object-type*)))))
+      (append-results (cursor-results cursor)))
+    future))
+
+(defun test_ (query-form)
   (as:start-event-loop
     (lambda ()
       (future-handler-case
         (alet ((sock (connect "127.0.0.1" 28015)))
           (future-handler-case
-            (multiple-future-bind (response token)
+            (multiple-future-bind (res token)
                 (run sock query-form)
-              (format t "---response(~a)---" token)
-              (pprint response)
-              (as:close-socket sock))
+              (format t "---response(~a)---~%" token)
+              (if (cursorp res)
+                  (alet ((res (to-array sock res)))
+                    (pprint res)
+                    (disconnect sock))
+                  (progn
+                    (pprint res)
+                    (disconnect sock))))
             (error (e)
               (format t "Query error: ~a~%" e)
-              (as:close-socket sock))))
+              (disconnect sock))))
         (error (e)
           (format t "Error: ~a~%" e))))))
 
-(defun names ()
-  (let* ((names '("andrew" "bernard" "lola" "mary" "hepatitis"
-                  "crendalin burgerhouser" "vinnie" "ralph" "john"
-                  "connie" "vlad" "attila" "candie" "mandy" "sandy"
-                  "philip" "renny" "stimpy" "moe" "larry" "curly"))
-         (num-names (length names)))
-    (as:start-event-loop
-      (lambda ()
-        (future-handler-case
-          (alet* ((sock (connect "127.0.0.1" 28015)))
-            (labels ((make-user (&optional (i 0))
-                       (let ((name (nth (random num-names) names))
-                             (age (1+ (random 100))))
-                         (format t "i: ~a~%" i)
-                         (wait-for
-                           (run sock (r (:insert (:table "users") `(("name" . ,name)
-                                                                    ("age" . ,age)))))
-                           (when (< i 10000)
-                             (make-user (+ i 1)))))))
-              (make-user)))
-          (error (e) (format t "Err: ~a~%" e))))
-      :catch-app-errors t)))
-
-(defun cursor-test ()
-  (as:with-event-loop ()
-    (alet* ((sock (connect "127.0.0.1" 28015 :db "test" :read-timeout 30))
-            (cursor (run sock (r (:table "users")))))
-      (format t "cursor: ~a~%" cursor)
-      (labels ((get-next (&optional (i 0))
-                 (alet ((rec (next sock cursor)))
-                   (format t "rec: ~s~%" rec)
-                   (if (< i 1100)
-                       (as:delay (lambda () (get-next (1+ i))) :time .01)
-                       (progn
-                         (remove-cursor cursor)
-                         (disconnect sock))))))
-        (get-next)))))

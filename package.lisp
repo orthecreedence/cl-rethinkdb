@@ -6,7 +6,24 @@
 
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-async-future :cl-rethinkdb-reql)
-  (:export :connect
+  (:export :query-error
+           :query-client-error
+           :query-compile-error
+           :query-runtime-error
+
+           :cursor-error
+           :cursor-no-more-results
+           :cursor-overshot
+
+           :cursor
+           :cursorp
+
+           :connect
+           :disconnect
+
            :run
-           :disconnect))
+           :next
+           :has-next
+           :to-array
+           :stop))
 

@@ -1,6 +1,7 @@
 (defpackage :cl-rethinkdb-util
-  (:use :cl)
-  (:export #:alistp
+  (:use :cl :cl-async-future)
+  (:export #:forward-errors
+           #:alistp
            #:objectp
            #:object-collection-p
            #:alist
@@ -9,6 +10,12 @@
            #:do-list/vector
            #:do-hash/alist))
 (in-package :cl-rethinkdb-util)
+
+(defmacro forward-errors ((future) body-form)
+  "Forward all errors encountered in a form to the given future."
+  `(future-handler-case
+     ,body-form
+     (error (e) (signal-error ,future e))))
 
 (defun alistp (alist)
   "Determine if the given object is an alist."
