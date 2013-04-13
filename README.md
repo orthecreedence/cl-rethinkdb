@@ -192,6 +192,17 @@ through the returned future.
 Call the given function on each of the results of a cursor. The returned future
 is finished when all results have been iterated over.
 
+```common-lisp
+(alet* ((sock (connect "127.0.0.1" 28015))
+        (cursor (run sock (r (:table "users")))))
+  ;; print each user
+  (wait-for (each sock cursor
+              (lambda (x) (format t "user: ~s~%" x)))
+    ;; cleanup
+    (wait-for (stop sock cursor)
+      (disconnect sock))))
+```
+
 ### stop (function)
 ```common-lisp
 (defun stop (sock cursor))
