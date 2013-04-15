@@ -411,7 +411,8 @@
    Which is a quicker way of saying:
 
      (attr \"age\" (row))"
-  (assert (is-string field))
+  (assert (or (null field)
+              (is-string field)))
   (let ((row (create-term +term-term-type-implicit-var+)))
     (if field
         (attr row field)
