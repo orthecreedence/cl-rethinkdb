@@ -89,6 +89,8 @@
              arr))
           ((typep datum 'list)
            (loop for d in datum collect (datum-to-lisp d :array-type array-type :object-type object-type)))
+          ((eq type +datum-datum-type-r-null+)
+           nil)
           ((eq type +datum-datum-type-r-str+)
            (pb:string-value (r-str datum)))
           ((eq type +datum-datum-type-r-num+)
