@@ -139,6 +139,13 @@
                      +term-term-type-branch+)
                object)))
 
+(defun is-datum (object)
+  "Test if an object is a datum type."
+  (or (is-string object)
+      (is-number object)
+      (is-object object)
+      (is-boolean object)))
+
 (deftype pkey () '(or real string))
 
 (defun is-pkey (object)
