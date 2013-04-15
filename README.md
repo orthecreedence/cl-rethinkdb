@@ -220,6 +220,26 @@ future that is finished with *no values* when the operation is complete.
 ```
 Disconnect a connection to a RethinkDB server.
 
+Config
+------
+These mainly have to do with how you want data returned.
+
+### \*sequence-type\*
+When a sequence is returned from RethinkDB, it can be either returned as a list
+(if `*sequence-type*` is `:list` or as a vector (if `*sequence-type*` is
+`:array`). It's really a matter of preference on how you're going to access the
+data.
+
+Default: `:list`
+
+### \*object-type\*
+If an object (as in, key/value object) is returned from RethinkDB, it can be
+encoded as a hash table (if `*object-type*` is `:hash`) or as an association
+list (if `*object-type* is `:alist`). Hash tables are almost always more
+performant, but alists can be easier to debug. Your choice.
+
+Default: `:hash`
+
 Commands
 --------
 All of the following are accessible via the [r DSL macro](#r-macro) by prefixing

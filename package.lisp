@@ -31,7 +31,10 @@
 
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-async-future :cl-rethinkdb-reql)
-  (:export :query-error
+  (:export :*sequence-type*
+           :*object-type*
+           
+           :query-error
            :query-client-error
            :query-compile-error
            :query-runtime-error
