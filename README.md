@@ -222,8 +222,7 @@ future that is finished with *no values* when the operation is complete.
 (defun disconnect (sock))
   => nil
 ```
-Disconnect a connection to a RethinkDB server. In addition, this function cleans
-up any open cursors (cursors not finished or [stopped](#stop-function)).
+Disconnect a connection to a RethinkDB server. 
 
 Config
 ------
