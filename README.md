@@ -46,8 +46,10 @@ This translates to
 ```
 
 ### fn (macro)
-This macro is very much like [r](#r-macro), and in fact wraps its inner forms
-in `r` so that you can use the query DSL from within a function.
+This macro creates an anonymous function for use in a RethinkDB query.
+
+It works very much like the [r macro](#r-macro), and in fact wraps its inner
+forms in `r` so that you can use the query DSL from within a function.
 
 ```common-lisp
 ;; return an anonymous function that adds `3` to the given argument
@@ -68,7 +70,9 @@ Note how inside the `fn` body, we're still using functions prefixed with `:`.
 Sending queries and getting results
 -----------------------------------
 Once you've constructed a query via [r](#r-macro), you need to send it to the
-server.
+server. When the server responds successfully, you will get either an atom (a
+single value: integer, boolean, hash, array, etc). or a [cursor](#cursor-class)
+which provides an interface to iterate over a set of atoms.
 
 ### connect (function)
 ```common-lisp
