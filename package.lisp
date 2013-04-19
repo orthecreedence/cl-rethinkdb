@@ -35,6 +35,7 @@
            :*object-type*
            
            :query-error
+           :query-error-msg
            :query-client-error
            :query-compile-error
            :query-runtime-error
