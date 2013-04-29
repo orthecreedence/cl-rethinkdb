@@ -9,7 +9,7 @@
   "Forward all errors encountered in a form to the given future."
   `(future-handler-case
      ,body-form
-     (error (e) (signal-error ,future e))))
+     (t (e) (signal-error ,future e))))
 
 (defmacro do-list/vector ((bind-val list/vector) &body body)
   "Generifies looping over a list OR vector."

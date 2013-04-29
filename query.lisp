@@ -356,24 +356,26 @@
     future))
 
 (defun test_ (query-form)
-  (as:start-event-loop
-    (lambda ()
-      (future-handler-case
-        (alet ((sock (connect "127.0.0.1" 28015)))
-          (future-handler-case
-            (multiple-future-bind (res token)
-                (run sock query-form)
-              (format t "---response(~a)---" token)
-              (if (cursorp res)
-                  (alet ((res (to-array sock res)))
-                    (pprint res)
-                    (disconnect sock))
-                  (progn
-                    (pprint res)
-                    (disconnect sock))))
-            (error (e)
-              (format t "Query error: ~a~%" e)
-              (disconnect sock))))
-        (error (e)
-          (format t "Error: ~a~%" e))))))
+  (as:with-event-loop (:catch-app-errors t)
+    (future-handler-case
+      (alet ((sock (connect "127.0.0.1" 28015 :read-timeout 1)))
+        (future-handler-case
+          (multiple-future-bind (res)
+              (run sock query-form)
+            (format t "---response---")
+            (if (cursorp res)
+                (alet ((res (to-array sock res)))
+                  (pprint res)
+                  (format t "~%")
+                  ;(disconnect sock)
+                  )
+                (progn
+                  (pprint res)
+                  (format t "~%")
+                  (disconnect sock))))
+          (t (e)
+            (format t "Query error: ~a~%" e)
+            (disconnect sock))))
+      (t (e)
+        (format t "Error: ~a~%" e)))))
 
