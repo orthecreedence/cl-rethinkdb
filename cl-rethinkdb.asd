@@ -12,7 +12,8 @@
    (:module reql
     :serial t
 	:components
-	((:file "types")
+	((:file "import")
+	 (:file "types")
 	 (:file "datum")
 	 (:file "term")
 	 (:file "function")

@@ -129,42 +129,42 @@
    
    Also throws any errors encountered in the response (client error, compile
    error, runtime error)."
-  (let* ((response-type (type response))
-         (token (token response))
+  (let* ((response-type (rdp:type response))
+         (token (rdp:token response))
          (cursor (get-cursor token))
          (future (cursor-future cursor))
          (value nil)
          (value-set-p nil))
     ;; by default cursor is finished
     (setf (cursor-state cursor) :finished)
-    (cond ((eq response-type +response-response-type-success-atom+)
+    (cond ((eq response-type rdp:+response-response-type-success-atom+)
            ;; we have an atom, finish the future with the atom value.
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (response response) 0)
+           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (rdp:response response) 0)
                                                          :array-type *sequence-type*
                                                          :object-type *object-type*)
                  value-set-p t))
-          ((eq response-type +response-response-type-success-sequence+)
+          ((eq response-type rdp:+response-response-type-success-sequence+)
            ;; we have a sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (response response)
+           (setf (cursor-results cursor) (rdp:response response)
                  value cursor
                  value-set-p t))
-          ((eq response-type +response-response-type-success-partial+)
+          ((eq response-type rdp:+response-response-type-success-partial+)
            ;; we have a partial sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (response response)
+           (setf (cursor-results cursor) (rdp:response response)
                  value cursor
                  value-set-p t
                  (cursor-state cursor) :partial))
-          ((or (find response-type (list +response-response-type-client-error+
-                                         +response-response-type-compile-error+
-                                         +response-response-type-runtime-error+)))
+          ((or (find response-type (list rdp:+response-response-type-client-error+
+                                         rdp:+response-response-type-compile-error+
+                                         rdp:+response-response-type-runtime-error+)))
            ;; some kind of error, signal the future...
-           (let ((fail-msg (pb:string-value (r-str (aref (response response) 0)))))
+           (let ((fail-msg (pb:string-value (r-str (aref (rdp:response response) 0)))))
              (signal-error future
-               (make-instance (cond ((eq response-type +response-response-type-client-error+)
+               (make-instance (cond ((eq response-type rdp:+response-response-type-client-error+)
                                      'query-client-error)
-                                    ((eq response-type +response-response-type-compile-error+)
+                                    ((eq response-type rdp:+response-response-type-compile-error+)
                                      'query-compile-error)
-                                    ((eq response-type +response-response-type-runtime-error+)
+                                    ((eq response-type rdp:+response-response-type-runtime-error+)
                                      'query-runtime-error))
                               :msg fail-msg
                               :token token))
@@ -224,18 +224,18 @@
          (cursor (make-instance 'cursor
                                 :token token
                                 :future future)))
-    (setf (type query) rdp:+query-query-type-start+
-          (query query) query-form)
+    (setf (rdp:type query) rdp:+query-query-type-start+
+          (rdp:query query) query-form)
     ;; setup the global options
     (let* ((options (socket-data sock))
            (kv (conn-kv options)))
       (dolist (opt kv)
         (let ((assoc (make-instance 'rdp:query-assoc-pair)))
-          (setf (key assoc) (pb:string-field (car opt))
-                (val assoc) (cl-rethinkdb-reql::expr (cdr opt)))
-          (vector-push-extend assoc (global-optargs query)))))
+          (setf (rdp:key assoc) (pb:string-field (car opt))
+                (rdp:val assoc) (cl-rethinkdb-reql::expr (cdr opt)))
+          (vector-push-extend assoc (rdp:global-optargs query)))))
     ;; set the token into the query
-    (setf (token query) (the fixnum token))
+    (setf (rdp:token query) (the fixnum token))
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
     (forward-errors (future)
@@ -256,8 +256,8 @@
   (let ((future (make-future))
         (query (make-instance 'rdp:query))
         (cursor (get-cursor token)))
-    (setf (token query) (the fixnum token)
-          (type query) +query-query-type-continue+
+    (setf (rdp:token query) (the fixnum token)
+          (rdp:type query) +query-query-type-continue+
           (cursor-future cursor) future)
     (forward-errors (future)
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
@@ -277,8 +277,8 @@
         (token (cursor-token cursor)))
     (if (eq (cursor-state cursor) :partial)
         (let ((query (make-instance 'rdp:query)))
-          (setf (token query) (the fixnum token)
-                (type query) +query-query-type-stop+)
+          (setf (rdp:token query) (the fixnum token)
+                (rdp:type query) +query-query-type-stop+)
           (forward-errors (future)
             (wait-for (do-send sock (serialize-protobuf query))
               (remove-cursor cursor)

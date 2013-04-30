@@ -1,11 +1,13 @@
 (defpackage :cl-rethinkdb-proto
-  (:use :cl :protocol-buffer)
+  (:use :protocol-buffer)
   (:nicknames :rdp))
 
 (defpackage :cl-rethinkdb-reql
   (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto)
   ;; steal some things from CL
-  (:shadow #:replace
+  (:shadow #:type
+
+           #:replace
            #:delete
            #:get
            #:map
@@ -30,7 +32,7 @@
            #:fn))
 
 (defpackage :cl-rethinkdb
-  (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto :cl-async-future :cl-rethinkdb-reql)
+  (:use :cl :cl-rethinkdb-util :cl-async-future :cl-rethinkdb-reql)
   (:export :*sequence-type*
            :*object-type*
            
