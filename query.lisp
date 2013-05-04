@@ -158,7 +158,7 @@
                                          rdp:+response-response-type-compile-error+
                                          rdp:+response-response-type-runtime-error+)))
            ;; some kind of error, signal the future...
-           (let ((fail-msg (pb:string-value (r-str (aref (rdp:response response) 0)))))
+           (let ((fail-msg (pb:string-value (rdp::r-str (aref (rdp:response response) 0)))))
              (signal-error future
                (make-instance (cond ((eq response-type rdp:+response-response-type-client-error+)
                                      'query-client-error)
