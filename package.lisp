@@ -56,6 +56,7 @@
            :next
            :has-next
            :to-array
+           :each
            :stop
 
            ;; export ReQL DSL functions
