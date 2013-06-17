@@ -17,6 +17,7 @@
            #:count
            #:merge
            #:append
+           #:set-difference
            #:+
            #:-
            #:*
@@ -29,7 +30,8 @@
            #:error)
   ;; only export our DSL functions
   (:export #:r
-           #:fn))
+           #:fn)
+  (:nicknames :reql))
 
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :cl-async-future :cl-rethinkdb-reql)

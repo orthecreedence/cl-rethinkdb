@@ -164,4 +164,10 @@
                      +term-term-type-branch+)
                object)))
 
+(defun is-order (object)
+  "Test if an object can be used in an orderby."
+  (or (is-term (list +term-term-type-asc+
+                     +term-term-type-desc+)
+               object)
+      (stringp object)))
 

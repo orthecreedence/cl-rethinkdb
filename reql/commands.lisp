@@ -48,8 +48,9 @@
 
 ;; -----------------------------------------------------------------------------
 ;; manipulating tables
+;; TODO: figure out a way to omit database arg (may have to write separate functions)
 ;; -----------------------------------------------------------------------------
-(defcommand table-create (database table-name &key datacenter primary-key cache-size)
+(defcommand table-create (database table-name &key datacenter primary-key cache-size hard-durability)
   "Create a table in the given database, optionally specifying the datacenter,
    primary key of the table (default 'id') and table cache size."
   (assert (is-term +term-term-type-db+ database))
@@ -60,10 +61,12 @@
               (is-string primary-key)))
   (assert (or (null cache-size)
               (is-number cache-size)))
+  (assert (is-boolean hard-durability))
   (let ((options nil))
     (when datacenter (push (cons "datacanter" datacenter) options))
     (when primary-key (push (cons "primary_key" primary-key) options))
     (when cache-size (push (cons "cache_size" cache-size) options))
+    (when hard-durability (push (cons "hard_durability" hard-durability) options))
     (create-term +term-term-type-table-create+
                  (list (wrap-in-term database)
                        (wrap-in-term table-name))
@@ -81,6 +84,35 @@
   "List tables in a database."
   (assert (is-term +term-term-type-db+ database))
   (create-term +term-term-type-table-list+ (list (wrap-in-term database))))
+
+(defcommand index-create (table name &optional reql-function)
+  "Create an index on the table with the given name. If a function is specified,
+   that index will be created using the return values of that function for each
+   field as opposed to the values of each field."
+  (assert (is-term +term-term-type-table+ table))
+  (assert (is-string name))
+  (assert (or (null reql-function)
+              (and (is-function reql-function)
+                   (= (num-args reql-function) 1))))
+  (create-term +term-term-type-index-create+
+               (cl:append
+                 (list (wrap-in-term table)
+                       (wrap-in-term name))
+                 (when reql-function
+                   (list (wrap-in-term reql-function))))))
+
+(defcommand index-drop (table name)
+  "Remove an index from a table."
+  (assert (is-term +term-term-type-table+ table))
+  (assert (is-string name))
+  (create-term +term-term-type-index-drop+
+               (list (wrap-in-term table)
+                     (wrap-in-term name))))
+
+(defcommand index-list (table)
+  "List indexes in a table."
+  (assert (is-term +term-term-type-table+ table))
+  (create-term +term-term-type-index-list+ (list (wrap-in-term table))))
 
 ;; -----------------------------------------------------------------------------
 ;; writing data
@@ -167,28 +199,49 @@
                (list (wrap-in-term table)
                      (wrap-in-term id))))
 
-(defcommand between (select &key left right)
+(defcommand get-all (table key index)
+  "Grabs all rows where the given key matches on the given index(es)."
+  (assert (is-term +term-term-type-table+ table))
+  (assert (is-datum key))
+  (assert (or (null index)
+              (stringp index)))
+  (let ((options nil))
+    (when index (push (cons "index" index) options))
+    (create-term +term-term-type-get-all+
+                 (list (wrap-in-term table)
+                       (wrap-in-term key))
+                 options)))
+
+(defcommand between (select &key left right index)
   "Grabs objects from a selection where the primary keys are between two values."
   (assert (is-select select))
   (assert (or (null left)
               (is-pkey left)))
   (assert (or (null right)
               (is-pkey right)))
+  (assert (or (null index)
+              (stringp index)))
   (let ((options nil))
-    (when left (push (cons "left_bound" left) options))
-    (when right (push (cons "right_bound" right) options))
+    (when index (push (cons "index" index) options))
     (create-term +term-term-type-between+
-                 (list (wrap-in-term select))
+                 (list (wrap-in-term select)
+                       (wrap-in-term left)
+                       (wrap-in-term right))
                  options)))
 
-(defcommand filter (sequence object/reql-function)
+(defcommand filter (sequence object/reql-function &key default)
   "Filter a sequence by either an object or a REQL function."
   (assert (is-sequence sequence))
   (assert (or (is-object object/reql-function)
-              (is-function object/reql-function)))
-  (create-term +term-term-type-filter+
-               (list (wrap-in-term sequence)
-                     (wrap-in-term object/reql-function))))
+              (and (is-function object/reql-function)
+                   (= (num-args object/reql-function) 1))))
+  (assert (is-datum default))
+  (let ((options nil))
+    (when default (push (cons "default" default) options))
+    (create-term +term-term-type-filter+
+                 (list (wrap-in-term sequence)
+                       (wrap-in-term object/reql-function))
+                 options)))
 
 ;; -----------------------------------------------------------------------------
 ;; joins
@@ -215,15 +268,20 @@
                      (wrap-in-term sequence2)
                      (wrap-in-term reql-function))))
   
-(defcommand eq-join (sequence1 field sequence2)
+(defcommand eq-join (sequence1 field sequence2 &key index)
   "Perform an equality join on two sequences by the given attribute name."
   (assert (is-sequence sequence1))
   (assert (stringp field))
   (assert (is-sequence sequence2))
-  (create-term +term-term-type-eq-join+
-               (list (wrap-in-term sequence1)
-                     (wrap-in-term field)
-                     (wrap-in-term sequence2))))
+  (assert (or (null index)
+              (stringp index)))
+  (let ((options nil))
+    (when index (push (cons "index" index) options))
+    (create-term +term-term-type-eq-join+
+                 (list (wrap-in-term sequence1)
+                       (wrap-in-term field)
+                       (wrap-in-term sequence2))
+                 options)))
 
 (defcommand zip (sequence)
   "Merge left/right fields of each member of a join."
@@ -242,6 +300,16 @@
                (list (wrap-in-term sequence)
                      (wrap-in-term reql-function))))
 
+(defcommand with-fields (sequence &rest strings)
+  "Grab only objects in the sequence that have ALL of the specified field names
+   and run a pluck() on those fields."
+  (assert (is-sequence sequence))
+  (dolist (string strings)
+    (assert (is-string string)))
+  (create-term +term-term-type-with-fields+
+               (cl:append (list sequence)
+                          (loop for s in strings collect (wrap-in-term s)))))
+
 (defcommand concat-map (sequence reql-function)
   "Construct a sequence of all elements returned by the given mapping function."
   (assert (is-sequence sequence))
@@ -256,24 +324,21 @@
   (assert (is-sequence sequence))
   (push field fields)
   (dolist (field fields)
-    (assert (or (stringp field)
-                (is-term (list +term-term-type-asc+
-                               +term-term-type-desc+)
-                         field))))
+    (assert (is-order field)))
   (create-term +term-term-type-orderby+
                (cl:append (list (wrap-in-term sequence))
                           (loop for f in fields
                                 collect (wrap-in-term f)))))
 
 (defcommand asc (field)
-  "Used in ordre-by queries to specify a field is ascending in order."
-  (assert (is-string field))
+  "Used in order-by queries to specify a field is ascending in order."
+  (assert (stringp field))
   (create-term +term-term-type-asc+
                (list (wrap-in-term field))))
 
 (defcommand desc (field)
-  "Used in ordre-by queries to specify a field is descending in order."
-  (assert (is-string field))
+  "Used in order-by queries to specify a field is descending in order."
+  (assert (stringp field))
   (create-term +term-term-type-desc+
                (list (wrap-in-term field))))
 
@@ -311,6 +376,21 @@
                (list (wrap-in-term sequence)
                      (wrap-in-term number))))
 
+(defcommand indexes-of (sequence datum/reql-function)
+  "Get the indexes of all the matching objects."
+  (assert (is-sequence sequence))
+  (assert (or (is-datum datum/reql-function)
+              (and (is-function datum/reql-function)
+                   (= (num-args datum/reql-function) 1))))
+  (create-term +term-term-type-indexes-of+
+               (list (wrap-in-term sequence)
+                     (wrap-in-term datum/reql-function))))
+
+(defcommand is-empty (sequence)
+  "Returns a boolean indicating if a sequence is empty."
+  (assert (is-sequence sequence))
+  (create-term +term-term-type-is-empty+ (list (wrap-in-term sequence))))
+
 (defcommand union (sequence &rest sequences)
   "Perform a union on a number of sequences."
   (push sequence sequences)
@@ -319,6 +399,15 @@
   (create-term +term-term-type-union+
                (loop for s in sequences
                      collect (wrap-in-term s))))
+
+(defcommand sample (sequence count)
+  "Select a number of elements from the given sequence with uniform
+   distribution."
+  (assert (is-sequence sequence))
+  (assert (is-number count))
+  (create-term +term-term-type-sample+
+               (list (wrap-in-term sequence)
+                     (wrap-in-term count))))
 
 ;; -----------------------------------------------------------------------------
 ;; aggregation
@@ -332,11 +421,17 @@
                (list (wrap-in-term sequence)
                      (wrap-in-term reql-function))))
 
-(defcommand count (sequence)
+(defcommand count (sequence &optional datum/reql-function)
   "Counts the items in a sequence."
   (assert (is-sequence sequence))
+  (assert (or (null datum/reql-function)
+              (is-datum datum/reql-function)
+              (and (is-function datum/reql-function)
+                   (= (num-args datum/reql-function) 1))))
   (create-term +term-term-type-count+
-               (list (wrap-in-term sequence))))
+               (cl:append (list (wrap-in-term sequence))
+                          (when datum/reql-function
+                            (list (wrap-in-term datum/reql-function))))))
 
 (defcommand distinct (sequence)
   "Get all the distinct elements in a sequence (ie remove-duplicates)."
@@ -371,6 +466,17 @@
                  (list (wrap-in-term sequence)
                        (term-array fields)
                        (wrap-in-term reduce-fn)))))
+
+(defcommand contains (object string &rest strings)
+  "Determine if an object contains a field."
+  (assert (is-object object))
+  (push string strings)
+  (dolist (string strings)
+    (assert (is-string string)))
+  (create-term +term-term-type-contains+
+               (cl:append (list (wrap-in-term object))
+                          (loop for s in strings
+                                collect (wrap-in-term s)))))
 
 ;; -----------------------------------------------------------------------------
 ;; reductions
@@ -461,16 +567,104 @@
                (list (wrap-in-term array)
                      (wrap-in-term object))))
 
-(defcommand contains (object string &rest strings)
-  "Determine if an object contains a field."
+(defcommand prepend (array object)
+  "Prepend an object to the beginning of an array."
+  (assert (is-array array))
   (assert (is-object object))
-  (push string strings)
+  (create-term +term-term-type-prepend+
+               (list (wrap-in-term array)
+                     (wrap-in-term object))))
+
+(defcommand difference (array1 array2)
+  "Remove all elements of array2 from array1 and return the resulting array."
+  (assert (is-array array1))
+  (assert (is-array array2))
+  (create-term +term-term-type-difference+
+               (list (wrap-in-term array1)
+                     (wrap-in-term array2))))
+
+(defcommand set-insert (array datum)
+  "Add the specified datum to the given set, return the resulting set."
+  (assert (is-array array))
+  (assert (is-datum datum))
+  (create-term +term-term-type-set-insert+
+               (list (wrap-in-term array)
+                     (wrap-in-term datum))))
+
+(defcommand set-intersection (array1 array2)
+  "Return the intersection of two sets."
+  (assert (is-array array1))
+  (assert (is-array array2))
+  (create-term +term-term-type-set-intersection+
+               (list (wrap-in-term array1)
+                     (wrap-in-term array2))))
+
+(defcommand set-union (array1 array2)
+  "Return the union of two sets."
+  (assert (is-array array1))
+  (assert (is-array array2))
+  (create-term +term-term-type-set-union+
+               (list (wrap-in-term array1)
+                     (wrap-in-term array2))))
+
+(defcommand set-difference (array1 array2)
+  "Return the difference of two sets."
+  (assert (is-array array1))
+  (assert (is-array array2))
+  (create-term +term-term-type-set-difference+
+               (list (wrap-in-term array1)
+                     (wrap-in-term array2))))
+
+(defcommand has-fields (object &rest strings)
+  (assert (is-object object))
   (dolist (string strings)
     (assert (is-string string)))
-  (create-term +term-term-type-contains+
-               (cl:append (list (wrap-in-term object))
-                          (loop for s in strings
-                                collect (wrap-in-term s)))))
+  (create-term +term-term-type-has-fields+
+               (cl:append (list object)
+                          (loop for s in strings collect (wrap-in-term s)))))
+
+(defcommand insert-at (array index datum)
+  "Insert the given object into the array at the specified index."
+  (assert (is-array array))
+  (assert (is-number index))
+  (assert (is-datum datum))
+  (create-term +term-term-type-insert-at+
+               (list (wrap-in-term array)
+                     (wrap-in-term index)
+                     (wrap-in-term datum))))
+
+(defcommand splice-at (array1 index array2)
+  "Splice an array into another at the given index."
+  (assert (is-array array1))
+  (assert (is-number index))
+  (assert (is-array array2))
+  (create-term +term-term-type-splice-at+
+               (list (wrap-in-term array1)
+                     (wrap-in-term index)
+                     (wrap-in-term array2))))
+
+(defcommand delete-at (array index)
+  "Remove the element of the array at the given index."
+  (assert (is-array array))
+  (assert (is-number index))
+  (create-term +term-term-type-delete-at+
+               (list (wrap-in-term array)
+                     (wrap-in-term index))))
+
+(defcommand change-at (array index datum)
+  "Change the item in the array at the given index to the given datum."
+  (assert (is-array array))
+  (assert (is-number index))
+  (assert (is-datum datum))
+  (create-term +term-term-type-change-at+
+               (list (wrap-in-term array)
+                     (wrap-in-term index)
+                     (wrap-in-term datum))))
+
+(defcommand keys (object)
+  "Returns an array of all an object's keys."
+  (assert (is-object object))
+  (create-term +term-term-type-keys+ (list object)))
 
 ;; -----------------------------------------------------------------------------
 ;; math and logic
@@ -598,6 +792,18 @@
   (create-term +term-term-type-not+ (list (wrap-in-term boolean))))
 
 ;; -----------------------------------------------------------------------------
+;; string manipulation
+;; -----------------------------------------------------------------------------
+(defcommand match (string regex)
+  "Returns an object representing a match of the given regex on the given
+   string."
+  (assert (is-string string))
+  (assert (is-string regex))
+  (create-term +term-term-type-match+
+               (list (wrap-in-term string)
+                     (wrap-in-term regex))))
+
+;; -----------------------------------------------------------------------------
 ;; control structures
 ;; -----------------------------------------------------------------------------
 (defcommand do (function &rest args)
@@ -632,6 +838,13 @@
   (assert (is-string message))
   (create-term +term-term-type-error+ (list (wrap-in-term message))))
 
+(defcommand default (top1 top2)
+  "Handle non-existence errors gracefully by specifying a default value in the
+   case of an error."
+  (create-term +term-term-type-default+
+               (list (wrap-in-term top1)
+                     (wrap-in-term top2))))
+
 (defcommand expr (object)
   "Make sure the passed object is able to be passed as an object in a query."
   (wrap-in-term object))
@@ -654,4 +867,8 @@
 (defcommand typeof (object)
   "Return the string type of the given object."
   (create-term +term-term-type-typeof+ (list (wrap-in-term object))))
+
+(defcommand info (object)
+  "Gets info about any object (tables are a popular choice)."
+  (create-term +term-term-type-info+ (wrap-in-term object)))
 
