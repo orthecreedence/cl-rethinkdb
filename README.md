@@ -253,11 +253,17 @@ These are almost 100% compatible with the [ReQL specification](http://www.rethin
 so if you familiarize yourself with the query language, you will automatically
 get a good handle on the following.
 
+For a better understanding of the return types of the following commands, see
+[the REQL type hierarchy in the protobuf specification](https://github.com/rethinkdb/rethinkdb/blob/next/src/rdb_protocol/ql2.proto).
+
 - `db-drop (db-name) => object`
 - `db-list () => object`
-- `table-create (db table-name &key datacenter primary-key cache-size) => object`
+- `table-create (db table-name &key datacenter primary-key cache-size hard-durability) => object`
 - `table-drop (db table-name) => object`
 - `table-list (db) => object`
+- `index-create (table name &optional reql-function) => object`
+- `index-drop (table name) => object`
+- `index-list (table) => array`
 - `insert (table sequence/object &key upsert) => object`
 - `update (select object/function &key non-atomic) => object`
 - `replace (select object/function &key non-atomic) => object`
@@ -265,13 +271,15 @@ get a good handle on the following.
 - `db (db-name) => db`
 - `table (table-name) => sequence`
 - `get (table item-id) => object`
-- `between (sequence &key left right) => sequence`
-- `filter (sequence object/function) => sequence`
+- `get-all (table key &optional index) => array`
+- `between (sequence &key left right index) => sequence`
+- `filter (sequence object/function &key default) => sequence`
 - `inner-join (sequence1 sequence2 function) => sequence`
 - `outer-join (sequence1 sequence2 function) => sequence`
-- `eq-join (sequence1 field sequence2) => sequence`
+- `eq-join (sequence1 field sequence2 &key index) => sequence`
 - `zip (sequence) => sequence`
 - `map (sequence function) => sequence`
+- `with-fields (sequence &rest strings) => sequence`
 - `concat-map (sequence function) => sequence`
 - `order-by (sequence field &rest fields) => sequence`
 - `asc (field) => field`
@@ -280,12 +288,16 @@ get a good handle on the following.
 - `limit (sequence number) => sequence`
 - `slice (sequence start end) => sequence`
 - `nth (sequence number) => object`
+- `indexes-of (sequence datum/reql-function) => sequence`
+- `is-empty (sequence) => boolean`
 - `union (sequence &rest sequences) => sequence`
+- `sample (sequence count) => sequence`
 - `reduce (sequence function) => object`
-- `count (sequence) => number`
+- `count (sequence &optional datum/reql-function) => number`
 - `distinct (sequence) => sequence`
 - `grouped-map-reduce (sequence function-group function-map function-reduce) => sequence`
 - `group-by (sequence &rest fields-then-reduction) => sequence`
+- `contains (object string) => boolean`
 - `count-reduce () => function`
 - `sum-reduce (field) => function`
 - `avg-reduce (field) => function`
@@ -295,7 +307,18 @@ get a good handle on the following.
 - `without (sequence/object field &rest fields) => sequence/object`
 - `merge (object &rest objects) => object`
 - `append (array object) => array`
-- `contains (object string) => boolean`
+- `prepend (array object) => array`
+- `difference (array1 array2) => array`
+- `set-insert (array datum) => array`
+- `set-intersection (array1 array2) => array`
+- `set-union (array1 array2) => array`
+- `set-difference (array1 array2) => array`
+- `has-fields (object &rest strings) => bool`
+- `insert-at (array index datum) => array`
+- `splice-at (array1 index array2) => array`
+- `delete-at (array index) => array`
+- `change-at (array index datum) => array`
+- `keys (object) => array`
 - `\+ (number/string &rest numbers/strings) => number/string`
 - `\- (number &rest numbers) => number`
 - `\* (number &rest numbers) => number`
@@ -310,14 +333,17 @@ get a good handle on the following.
 - `> (object &rest objects) => boolean`
 - `>= (object &rest objects) => boolean`
 - `~ (boolean) => boolean`
+- `match (string string-regex) => object`
 - `do (function &rest args) => object`
 - `branch (boolean true-expr false-expr) => object`
 - `foreach (sequence function) => object`
 - `error (message) => error`
+- `default (top1 top2) => top`
 - `expr (lisp-object) => RethinkDB object`
 - `js (javascript-str) => object/function`
 - `coerce-to (object type) => object`
 - `typeof (object) => type-string`
+- `info (object) => object`
 
 Errors
 ------

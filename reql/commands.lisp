@@ -199,7 +199,7 @@
                (list (wrap-in-term table)
                      (wrap-in-term id))))
 
-(defcommand get-all (table key index)
+(defcommand get-all (table key &optional index)
   "Grabs all rows where the given key matches on the given index(es)."
   (assert (is-term +term-term-type-table+ table))
   (assert (is-datum key))
@@ -794,14 +794,14 @@
 ;; -----------------------------------------------------------------------------
 ;; string manipulation
 ;; -----------------------------------------------------------------------------
-(defcommand match (string regex)
+(defcommand match (string string-regex)
   "Returns an object representing a match of the given regex on the given
    string."
   (assert (is-string string))
-  (assert (is-string regex))
+  (assert (is-string string-regex))
   (create-term +term-term-type-match+
                (list (wrap-in-term string)
-                     (wrap-in-term regex))))
+                     (wrap-in-term string-regex))))
 
 ;; -----------------------------------------------------------------------------
 ;; control structures
