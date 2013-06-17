@@ -11,15 +11,17 @@
 (in-package #:cl-rethinkdb-proto)
 (cl:declaim #.com.google.base:*optimize-default*)
 
-(cl:deftype version-dummy-version () '(cl:member 1063369270))
+(cl:deftype version-dummy-version () '(cl:member 1063369270 1915781601))
 (cl:export 'version-dummy-version)
 
 (cl:defconstant +version-dummy-version-v0-1+ 1063369270)
 (cl:export '+version-dummy-version-v0-1+)
+(cl:defconstant +version-dummy-version-v0-2+ 1915781601)
+(cl:export '+version-dummy-version-v0-2+)
 
 (cl:defconstant +minimum-version-dummy-version+ +version-dummy-version-v0-1+)
 (cl:export '+minimum-version-dummy-version+)
-(cl:defconstant +maximum-version-dummy-version+ +version-dummy-version-v0-1+)
+(cl:defconstant +maximum-version-dummy-version+ +version-dummy-version-v0-2+)
 (cl:export '+maximum-version-dummy-version+)
 
 (cl:deftype query-query-type () '(cl:member 1 2 3))
@@ -92,7 +94,7 @@
 (cl:defconstant +maximum-datum-datum-type+ +datum-datum-type-r-object+)
 (cl:export '+maximum-datum-datum-type+)
 
-(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69 70 71 72 73 74))
+(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97))
 (cl:export 'term-term-type)
 
 (cl:defconstant +term-term-type-datum+ 1)
@@ -115,6 +117,8 @@
 (cl:export '+term-term-type-table+)
 (cl:defconstant +term-term-type-get+ 16)
 (cl:export '+term-term-type-get+)
+(cl:defconstant +term-term-type-get-all+ 78)
+(cl:export '+term-term-type-get-all+)
 (cl:defconstant +term-term-type-eq+ 17)
 (cl:export '+term-term-type-eq+)
 (cl:defconstant +term-term-type-ne+ 18)
@@ -141,16 +145,36 @@
 (cl:export '+term-term-type-mod+)
 (cl:defconstant +term-term-type-append+ 29)
 (cl:export '+term-term-type-append+)
+(cl:defconstant +term-term-type-prepend+ 80)
+(cl:export '+term-term-type-prepend+)
+(cl:defconstant +term-term-type-difference+ 95)
+(cl:export '+term-term-type-difference+)
+(cl:defconstant +term-term-type-set-insert+ 88)
+(cl:export '+term-term-type-set-insert+)
+(cl:defconstant +term-term-type-set-intersection+ 89)
+(cl:export '+term-term-type-set-intersection+)
+(cl:defconstant +term-term-type-set-union+ 90)
+(cl:export '+term-term-type-set-union+)
+(cl:defconstant +term-term-type-set-difference+ 91)
+(cl:export '+term-term-type-set-difference+)
 (cl:defconstant +term-term-type-slice+ 30)
 (cl:export '+term-term-type-slice+)
 (cl:defconstant +term-term-type-skip+ 70)
 (cl:export '+term-term-type-skip+)
 (cl:defconstant +term-term-type-limit+ 71)
 (cl:export '+term-term-type-limit+)
+(cl:defconstant +term-term-type-indexes-of+ 87)
+(cl:export '+term-term-type-indexes-of+)
+(cl:defconstant +term-term-type-contains+ 93)
+(cl:export '+term-term-type-contains+)
 (cl:defconstant +term-term-type-getattr+ 31)
 (cl:export '+term-term-type-getattr+)
-(cl:defconstant +term-term-type-contains+ 32)
-(cl:export '+term-term-type-contains+)
+(cl:defconstant +term-term-type-keys+ 94)
+(cl:export '+term-term-type-keys+)
+(cl:defconstant +term-term-type-has-fields+ 32)
+(cl:export '+term-term-type-has-fields+)
+(cl:defconstant +term-term-type-with-fields+ 96)
+(cl:export '+term-term-type-with-fields+)
 (cl:defconstant +term-term-type-pluck+ 33)
 (cl:export '+term-term-type-pluck+)
 (cl:defconstant +term-term-type-without+ 34)
@@ -173,6 +197,8 @@
 (cl:export '+term-term-type-distinct+)
 (cl:defconstant +term-term-type-count+ 43)
 (cl:export '+term-term-type-count+)
+(cl:defconstant +term-term-type-is-empty+ 86)
+(cl:export '+term-term-type-is-empty+)
 (cl:defconstant +term-term-type-union+ 44)
 (cl:export '+term-term-type-union+)
 (cl:defconstant +term-term-type-nth+ 45)
@@ -189,6 +215,14 @@
 (cl:export '+term-term-type-eq-join+)
 (cl:defconstant +term-term-type-zip+ 72)
 (cl:export '+term-term-type-zip+)
+(cl:defconstant +term-term-type-insert-at+ 82)
+(cl:export '+term-term-type-insert-at+)
+(cl:defconstant +term-term-type-delete-at+ 83)
+(cl:export '+term-term-type-delete-at+)
+(cl:defconstant +term-term-type-change-at+ 84)
+(cl:export '+term-term-type-change-at+)
+(cl:defconstant +term-term-type-splice-at+ 85)
+(cl:export '+term-term-type-splice-at+)
 (cl:defconstant +term-term-type-coerce-to+ 51)
 (cl:export '+term-term-type-coerce-to+)
 (cl:defconstant +term-term-type-typeof+ 52)
@@ -213,6 +247,12 @@
 (cl:export '+term-term-type-table-drop+)
 (cl:defconstant +term-term-type-table-list+ 62)
 (cl:export '+term-term-type-table-list+)
+(cl:defconstant +term-term-type-index-create+ 75)
+(cl:export '+term-term-type-index-create+)
+(cl:defconstant +term-term-type-index-drop+ 76)
+(cl:export '+term-term-type-index-drop+)
+(cl:defconstant +term-term-type-index-list+ 77)
+(cl:export '+term-term-type-index-list+)
 (cl:defconstant +term-term-type-funcall+ 64)
 (cl:export '+term-term-type-funcall+)
 (cl:defconstant +term-term-type-branch+ 65)
@@ -229,10 +269,18 @@
 (cl:export '+term-term-type-asc+)
 (cl:defconstant +term-term-type-desc+ 74)
 (cl:export '+term-term-type-desc+)
+(cl:defconstant +term-term-type-info+ 79)
+(cl:export '+term-term-type-info+)
+(cl:defconstant +term-term-type-match+ 97)
+(cl:export '+term-term-type-match+)
+(cl:defconstant +term-term-type-sample+ 81)
+(cl:export '+term-term-type-sample+)
+(cl:defconstant +term-term-type-default+ 92)
+(cl:export '+term-term-type-default+)
 
 (cl:defconstant +minimum-term-term-type+ +term-term-type-datum+)
 (cl:export '+minimum-term-term-type+)
-(cl:defconstant +maximum-term-term-type+ +term-term-type-desc+)
+(cl:defconstant +maximum-term-term-type+ +term-term-type-match+)
 (cl:export '+maximum-term-term-type+)
 
 (cl:defclass version-dummy (pb:protocol-buffer)
@@ -376,8 +424,8 @@
    :accessor token
    :initform 0
    :type (cl:signed-byte 64))
-  (noreply
-   :accessor noreply
+  (obsolete-noreply
+   :accessor obsolete-noreply
    :initform cl:nil
    :type cl:boolean)
   (global-optargs
@@ -470,26 +518,26 @@
   (cl:values))
 (cl:export 'clear-token)
 
-(cl:export 'noreply)
+(cl:export 'obsolete-noreply)
 
 
-(cl:defmethod (cl:setf noreply) :after (x (self query))
+(cl:defmethod (cl:setf obsolete-noreply) :after (x (self query))
   (cl:declare (cl:ignore x))
   (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
 
-(cl:unless (cl:fboundp 'has-noreply)
-  (cl:defgeneric has-noreply (proto)))
-(cl:defmethod has-noreply ((self query))
+(cl:unless (cl:fboundp 'has-obsolete-noreply)
+  (cl:defgeneric has-obsolete-noreply (proto)))
+(cl:defmethod has-obsolete-noreply ((self query))
   (cl:logbitp 3 (cl:slot-value self '%has-bits%)))
-(cl:export 'has-noreply)
+(cl:export 'has-obsolete-noreply)
 
-(cl:unless (cl:fboundp 'clear-noreply)
-  (cl:defgeneric clear-noreply (proto)))
-(cl:defmethod clear-noreply ((self query))
-  (cl:setf (cl:slot-value self 'noreply) cl:nil)
+(cl:unless (cl:fboundp 'clear-obsolete-noreply)
+  (cl:defgeneric clear-obsolete-noreply (proto)))
+(cl:defmethod clear-obsolete-noreply ((self query))
+  (cl:setf (cl:slot-value self 'obsolete-noreply) cl:nil)
   (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
-(cl:export 'clear-noreply)
+(cl:export 'clear-obsolete-noreply)
 
 (cl:export 'global-optargs)
 
@@ -617,7 +665,7 @@
       (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
         (cl:format stream " ~_token: ~s" (token self)))
       (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
-        (cl:format stream " ~_noreply: ~s" (noreply self)))
+        (cl:format stream " ~_obsolete-noreply: ~s" (obsolete-noreply self)))
       (cl:format stream " ~_global-optargs: ~s" (global-optargs self))
       ))
   (cl:values))
@@ -627,7 +675,7 @@
   (cl:when (cl:logbitp 1 (cl:slot-value self '%has-bits%))
     (cl:setf (cl:slot-value self 'query) cl:nil))
   (cl:setf (cl:slot-value self 'token) 0)
-  (cl:setf (cl:slot-value self 'noreply) cl:nil)
+  (cl:setf (cl:slot-value self 'obsolete-noreply) cl:nil)
   (cl:setf (cl:slot-value self 'global-optargs)
            (cl:make-array 0 :element-type 'cl-rethinkdb-proto::query-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
@@ -659,7 +707,7 @@
     (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
       (cl:incf size
         (cl:+ 1 (varint:length64 (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token))))))
-    ;; optional bool noreply = 4 [default = false];
+    ;; optional bool OBSOLETE_noreply = 4 [default = false];
     (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
       (cl:incf size
         (cl:+ 1 1)))
@@ -692,10 +740,10 @@
   (cl:when (cl:logbitp 2 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 24))
     (cl:setf index (varint:encode-uint64-carefully buffer index limit (cl:ldb (cl:byte 64 0) (cl:slot-value self 'token)))))
-  ;; optional bool noreply = 4 [default = false];
+  ;; optional bool OBSOLETE_noreply = 4 [default = false];
   (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 32))
-    (cl:setf index (wire-format:write-boolean-carefully buffer index limit (cl:slot-value self 'noreply))))
+    (cl:setf index (wire-format:write-boolean-carefully buffer index limit (cl:slot-value self 'obsolete-noreply))))
   ;; repeated .Query.AssocPair global_optargs = 6;
   (cl:let* ((v (cl:slot-value self 'global-optargs))
             (length (cl:length v)))
@@ -744,11 +792,11 @@
             (cl:setf (cl:slot-value self 'token) value)
             (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
-        ;; optional bool noreply = 4 [default = false];
+        ;; optional bool OBSOLETE_noreply = 4 [default = false];
         ((32)
           (cl:multiple-value-bind (value new-index)
               (wire-format:read-boolean-carefully buffer index limit)
-            (cl:setf (cl:slot-value self 'noreply) value)
+            (cl:setf (cl:slot-value self 'obsolete-noreply) value)
             (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
         ;; repeated .Query.AssocPair global_optargs = 6;
@@ -787,7 +835,7 @@
     (cl:setf (cl:slot-value self 'token) (cl:slot-value from 'token))
     (cl:setf (cl:ldb (cl:byte 1 2) (cl:slot-value self '%has-bits%)) 1))
   (cl:when (cl:logbitp 3 (cl:slot-value from '%has-bits%))
-    (cl:setf (cl:slot-value self 'noreply) (cl:slot-value from 'noreply))
+    (cl:setf (cl:slot-value self 'obsolete-noreply) (cl:slot-value from 'obsolete-noreply))
     (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
 )
 
