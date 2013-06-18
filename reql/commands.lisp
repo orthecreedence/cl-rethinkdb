@@ -152,8 +152,8 @@
    The replacement object needs to have the primary key in it."
   (assert (is-select select))
   (assert (or (is-object object/reql-function)
-              (is-function object/reql-function)))
-  (assert-fn-args object/reql-function 2)
+              (and (is-function object/reql-function)
+                   (= (num-args object/reql-function) 1))))
   (assert (is-boolean non-atomic))
   (create-term +term-term-type-replace+
                (list (wrap-in-term select)
