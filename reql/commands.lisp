@@ -469,7 +469,7 @@
 
 (defcommand contains (sequence datum)
   "Returns whether or not a sequence contains all given values."
-  (assert (is-object sequence))
+  (assert (is-sequence sequence))
   (assert (is-datum datum))
   (create-term +term-term-type-contains+
                (cl:append (list (wrap-in-term sequence)
