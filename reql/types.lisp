@@ -26,6 +26,7 @@
    either a StreamSelect or SingleSelect object."
   (is-term (list +term-term-type-table+
                  +term-term-type-get+
+                 +term-term-type-get-all+
                  +term-term-type-between+
                  +term-term-type-filter+)
            object))
@@ -40,6 +41,9 @@
                      +term-term-type-limit+
                      +term-term-type-pluck+
                      +term-term-type-without+
+                     +term-term-type-with-fields+
+                     +term-term-type-indexes-of+
+                     +term-term-type-sample+
                      +term-term-type-merge+
                      +term-term-type-map+
                      +term-term-type-filter+
@@ -61,7 +65,19 @@
 (defun is-array (object)
   "Determine if the given object is an array term/type."
   (or (is-term (list +term-term-type-make-array+
+                     +term-term-type-index-list+
                      +term-term-type-append+
+                     +term-term-type-prepend+
+                     +term-term-type-difference+
+                     +term-term-type-set-insert+
+                     +term-term-type-set-intersection+
+                     +term-term-type-set-union+
+                     +term-term-type-set-difference+
+                     +term-term-type-insert-at+
+                     +term-term-type-splice-at+
+                     +term-term-type-delete-at+
+                     +term-term-type-change-at+
+                     +term-term-type-keys+
                      +term-term-type-db-list+
                      +term-term-type-table-list+
                      +term-term-type-var+
@@ -80,6 +96,8 @@
                      +term-term-type-ge+
                      +term-term-type-not+
                      +term-term-type-contains+
+                     +term-term-type-is-empty+
+                     +term-term-type-has-fields+
                      +term-term-type-any+
                      +term-term-type-all+
                      +term-term-type-var+
@@ -93,6 +111,8 @@
       (typep object 'hash-table)
       (is-function object)
       (is-term (list +term-term-type-get+
+                     +term-term-type-index-create+
+                     +term-term-type-index-drop+
                      +term-term-type-implicit-var+
                      +term-term-type-var+
                      +term-term-type-getattr+
@@ -111,7 +131,8 @@
                      +term-term-type-table-drop+
                      +term-term-type-foreach+
                      +term-term-type-funcall+
-                     +term-term-type-branch+)
+                     +term-term-type-branch+
+                     +term-term-type-info+)
                object)))
 
 (defun is-string (object)
@@ -144,7 +165,10 @@
   (or (is-string object)
       (is-number object)
       (is-object object)
-      (is-boolean object)))
+      (is-boolean object)
+      (is-term (list +term-term-type-default+
+                     +term-term-type-match+)
+               object)))
 
 (deftype pkey () '(or real string))
 
