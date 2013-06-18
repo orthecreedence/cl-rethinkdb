@@ -467,16 +467,13 @@
                        (term-array fields)
                        (wrap-in-term reduce-fn)))))
 
-(defcommand contains (object string &rest strings)
-  "Determine if an object contains a field."
-  (assert (is-object object))
-  (push string strings)
-  (dolist (string strings)
-    (assert (is-string string)))
+(defcommand contains (sequence datum)
+  "Returns whether or not a sequence contains all given values."
+  (assert (is-object sequence))
+  (assert (is-datum datum))
   (create-term +term-term-type-contains+
-               (cl:append (list (wrap-in-term object))
-                          (loop for s in strings
-                                collect (wrap-in-term s)))))
+               (cl:append (list (wrap-in-term sequence)
+                                (wrap-in-term datum)))))
 
 ;; -----------------------------------------------------------------------------
 ;; reductions
@@ -615,8 +612,9 @@
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))
 
-(defcommand has-fields (object &rest strings)
+(defcommand has-fields (object string &rest strings)
   (assert (is-object object))
+  (push string strings)
   (dolist (string strings)
     (assert (is-string string)))
   (create-term +term-term-type-has-fields+
