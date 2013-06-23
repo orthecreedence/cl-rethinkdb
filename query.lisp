@@ -325,7 +325,7 @@
 (defun has-next (cursor)
   "Determine if a cursor has more results."
   (or (< (cursor-current-result cursor) (length (cursor-results cursor)))
-      (and (eq (cursor-state cursor) :partial))))
+      (eq (cursor-state cursor) :partial)))
 
 (defun to-array (sock cursor)
   "Grab ALL results from a cursor. Returns a future finished with the final

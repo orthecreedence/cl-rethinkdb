@@ -216,8 +216,9 @@ is finished when all results have been iterated over.
   => future
 ```
 Stops a currently open query/cursor. This cleans up the cursor locally, and also
-lets RethinkDB that the results for this cursor are no longer needed. Returns a
-future that is finished with *no values* when the operation is complete.
+lets RethinkDB know that the results for this cursor are no longer needed.
+Returns a future that is finished with *no values* when the operation is
+complete.
 
 ### disconnect (function)
 ```common-lisp
