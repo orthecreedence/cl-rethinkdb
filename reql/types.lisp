@@ -41,6 +41,7 @@
                      +term-term-type-limit+
                      +term-term-type-pluck+
                      +term-term-type-without+
+                     +term-term-type-default+
                      +term-term-type-with-fields+
                      +term-term-type-indexes-of+
                      +term-term-type-sample+
@@ -119,6 +120,7 @@
                      +term-term-type-reduce+
                      +term-term-type-nth+
                      +term-term-type-funcall+
+                     +term-term-type-default+
                      +term-term-type-pluck+
                      +term-term-type-without+
                      +term-term-type-merge+
