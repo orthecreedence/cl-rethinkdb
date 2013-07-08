@@ -233,7 +233,7 @@
       (when index (push (cons "index" index) options))
       (create-term +term-term-type-get-all+
                    (cl:append (list (wrap-in-term table))
-                              keys)
+                              (loop for k in keys collect (wrap-in-term k)))
                    options))))
 
 (defcommand between (select &key left right index)
