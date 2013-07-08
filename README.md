@@ -4,7 +4,7 @@ This is an async [RethinkDB](http://www.rethinkdb.com/) driver for *everyone's*
 favorite programming language. It does its best to follow the [query language
 specification](http://www.rethinkdb.com/api/#js).
 
-*This driver is up to date with RethinkDB's v1.6 protocol.*
+*This driver is up to date with RethinkDB's v1.7 protocol.*
 
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
 and makes heavy use of [cl-async's futures](http://orthecreedence.github.io/cl-async/future).
