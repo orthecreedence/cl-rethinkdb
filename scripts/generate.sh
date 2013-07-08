@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # makes protobuf generation work
-export PATH=$PATH:~/.asdf/systems/protobuf/protoc/bin/
+export PATH=$PATH:~/.asdf/systems/protobuf/protoc/lisp/:~/.asdf/systems/protobuf/protoc/bin/
 ABSPATH=`pwd -P`
 
 # generate the set of lisp classes from the protbuf file. once this is complete,
