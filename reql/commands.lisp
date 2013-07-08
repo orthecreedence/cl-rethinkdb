@@ -50,7 +50,7 @@
 ;; manipulating tables
 ;; TODO: figure out a way to omit database arg (may have to write separate functions)
 ;; -----------------------------------------------------------------------------
-(defcommand table-create (database table-name &key datacenter primary-key cache-size hard-durability)
+(defcommand table-create (database table-name &key datacenter primary-key cache-size durability)
   "Create a table in the given database, optionally specifying the datacenter,
    primary key of the table (default 'id') and table cache size."
   (assert (is-term +term-term-type-db+ database))
@@ -61,12 +61,13 @@
               (is-string primary-key)))
   (assert (or (null cache-size)
               (is-number cache-size)))
-  (assert (is-boolean hard-durability))
+  (assert (or (null durability)
+              (is-string durability)))
   (let ((options nil))
     (when datacenter (push (cons "datacanter" datacenter) options))
     (when primary-key (push (cons "primary_key" primary-key) options))
     (when cache-size (push (cons "cache_size" cache-size) options))
-    (when hard-durability (push (cons "hard_durability" hard-durability) options))
+    (when durability (push (cons "durability" durability) options))
     (create-term +term-term-type-table-create+
                  (list (wrap-in-term database)
                        (wrap-in-term table-name))
@@ -117,7 +118,7 @@
 ;; -----------------------------------------------------------------------------
 ;; writing data
 ;; -----------------------------------------------------------------------------
-(defcommand insert (table sequence/object &key upsert)
+(defcommand insert (table sequence/object &key upsert durability)
   "Create an insert query, given a table object and a set of values.
 
    The value can be a hash table (or alist), or an array of hashes/alists (in
@@ -126,12 +127,17 @@
   (assert (or (is-sequence sequence/object)
               (is-object sequence/object)))
   (assert (is-boolean upsert))
-  (create-term +term-term-type-insert+
-               (list (wrap-in-term table)
-                     (wrap-in-term sequence/object))
-               (when upsert '(("upsert" . t)))))
+  (assert (or (null durability)
+              (is-string durability)))
+  (let ((options nil))
+    (when upsert (push (cons "upsert" t) options))
+    (when durability (push (cons "durability" durability) options))
+    (create-term +term-term-type-insert+
+                 (list (wrap-in-term table)
+                       (wrap-in-term sequence/object))
+                 options)))
 
-(defcommand update (select object/reql-function &key non-atomic)
+(defcommand update (select object/reql-function &key non-atomic durability)
   "Update an object or set of objects (a select) using the given object or REQL
    function object. Supports using non-atomic writing via :non-atomic."
   (assert (is-select select))
@@ -139,13 +145,17 @@
               (is-function object/reql-function)))
   (assert-fn-args object/reql-function 2)
   (assert (is-boolean non-atomic))
-  (create-term +term-term-type-update+
-               (list (wrap-in-term select)
-                     (wrap-in-term object/reql-function))
-               (when non-atomic
-                 '(("non_atomic" . t)))))
+  (assert (or (null durability)
+              (is-string durability)))
+  (let ((options nil))
+    (when non-atomic (push (cons "non_atomic" t) options))
+    (when durability (push (cons "durability" durability) options))
+    (create-term +term-term-type-update+
+                 (list (wrap-in-term select)
+                       (wrap-in-term object/reql-function))
+                 options)))
 
-(defcommand replace (select object/reql-function &key non-atomic)
+(defcommand replace (select object/reql-function &key non-atomic durability)
   "Replace an entire object or set of objects (a select) using the given object
    REQL function string. Supports using non-atomic writing via :non-atomic.
    
@@ -155,16 +165,26 @@
               (and (is-function object/reql-function)
                    (= (num-args object/reql-function) 1))))
   (assert (is-boolean non-atomic))
-  (create-term +term-term-type-replace+
-               (list (wrap-in-term select)
-                     (wrap-in-term object/reql-function))
-               (when non-atomic
-                 '(("non_atomic" . t)))))
+  (assert (or (null durability)
+              (is-string durability)))
+  (let ((options nil))
+    (when non-atomic (push (cons "non_atomic" t) options))
+    (when durability (push (cons "durability" durability) options))
+    (create-term +term-term-type-replace+
+                 (list (wrap-in-term select)
+                       (wrap-in-term object/reql-function))
+                 options)))
 
-(defcommand delete (select)
+(defcommand delete (select &key durability)
   "Delete an object or set of objects (a select)."
   (assert (is-select select))
-  (create-term +term-term-type-delete+ (list (wrap-in-term select))))
+  (assert (or (null durability)
+              (is-string durability)))
+  (let ((options nil))
+    (when durability (push (cons "durability" durability) options))
+    (create-term +term-term-type-delete+
+                 (list (wrap-in-term select))
+                 options)))
 
 ;; -----------------------------------------------------------------------------
 ;; selecting data
@@ -199,18 +219,22 @@
                (list (wrap-in-term table)
                      (wrap-in-term id))))
 
-(defcommand get-all (table key &optional index)
-  "Grabs all rows where the given key matches on the given index(es)."
-  (assert (is-term +term-term-type-table+ table))
-  (assert (is-datum key))
-  (assert (or (null index)
-              (stringp index)))
-  (let ((options nil))
-    (when index (push (cons "index" index) options))
-    (create-term +term-term-type-get-all+
-                 (list (wrap-in-term table)
-                       (wrap-in-term key))
-                 options)))
+(defcommand get-all (table key/keys &key index)
+  "Grabs all rows where the given key(s) matches on the given index(es)."
+  (let ((keys (if (listp key/keys)
+                  key/keys
+                  (list key/keys))))
+    (assert (is-term +term-term-type-table+ table))
+    (dolist (key keys)
+      (assert (is-datum key)))
+    (assert (or (null index)
+                (stringp index)))
+    (let ((options nil))
+      (when index (push (cons "index" index) options))
+      (create-term +term-term-type-get-all+
+                   (cl:append (list (wrap-in-term table))
+                              keys)
+                   options))))
 
 (defcommand between (select &key left right index)
   "Grabs objects from a selection where the primary keys are between two values."
@@ -493,16 +517,17 @@
 ;; -----------------------------------------------------------------------------
 ;; document manipulation
 ;; -----------------------------------------------------------------------------
-(defcommand attr (object field)
-  "Grab an object attribute from an object. Can be nested:
+(defcommand attr (object/sequence field)
+  "Grab an object attribute from an object/sequence. Can be nested:
 
      (attr \"name\" (attr \"user\" (row)))
 
    Would be r.row(\"user\")(\"name\") in JS."
-  (assert (is-object object))
+  (assert (or (is-object object/sequence)
+              (is-sequence object/sequence)))
   (assert (is-string field))
-  (create-term +term-term-type-getattr+
-               (list (wrap-in-term object)
+  (create-term +term-term-type-get-field+
+               (list (wrap-in-term object/sequence)
                      (wrap-in-term field))))
 
 (defcommand row (&optional field)
@@ -528,7 +553,8 @@
               (is-sequence sequence/object)))
   (push field fields)
   (dolist (field fields)
-    (assert (is-string field)))
+    (assert (or (is-string field)
+                (is-object field))))
   (create-term +term-term-type-pluck+
                (cl:append (list (wrap-in-term sequence/object))
                           (loop for f in fields
@@ -869,4 +895,9 @@
 (defcommand info (object)
   "Gets info about any object (tables are a popular choice)."
   (create-term +term-term-type-info+ (wrap-in-term object)))
+
+(defcommand json (string)
+  "Convert the given JSON string into a datum."
+  (assert (is-string string))
+  (create-term +term-term-type-json+ (list (wrap-in-term string))))
 

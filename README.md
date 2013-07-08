@@ -261,20 +261,21 @@ For a better understanding of the return types of the following commands, see
 
 - `db-drop (db-name) => object`
 - `db-list () => object`
-- `table-create (db table-name &key datacenter primary-key cache-size hard-durability) => object`
+- `table-create (db table-name &key datacenter primary-key cache-size durability) => object`
 - `table-drop (db table-name) => object`
 - `table-list (db) => object`
 - `index-create (table name &optional reql-function) => object`
 - `index-drop (table name) => object`
 - `index-list (table) => array`
-- `insert (table sequence/object &key upsert) => object`
-- `update (select object/function &key non-atomic) => object`
-- `replace (select object/function &key non-atomic) => object`
-- `delete (select) => object`
+- `insert (table sequence/object &key upsert durability) => object`
+- `update (select object/function &key non-atomic durability) => object`
+- `replace (select object/function &key non-atomic durability) => object`
+- `delete (select &key durability) => object`
 - `db (db-name) => db`
 - `table (table-name) => sequence`
 - `get (table item-id) => object`
-- `get-all (table key &optional index) => array`
+- `get-all (table key/keys &key index) => array`  
+  (`key/keys` can be either a string type or a list of string types)
 - `between (sequence &key left right index) => sequence`
 - `filter (sequence object/function &key default) => sequence`
 - `inner-join (sequence1 sequence2 function) => sequence`
@@ -347,6 +348,7 @@ For a better understanding of the return types of the following commands, see
 - `coerce-to (object type) => object`
 - `typeof (object) => type-string`
 - `info (object) => object`
+- `json (string) => object`
 
 Errors
 ------
