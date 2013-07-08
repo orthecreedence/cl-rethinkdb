@@ -118,7 +118,7 @@
 ;; -----------------------------------------------------------------------------
 ;; writing data
 ;; -----------------------------------------------------------------------------
-(defcommand insert (table sequence/object &key upsert durability)
+(defcommand insert (table sequence/object &key upsert durability return-vals)
   "Create an insert query, given a table object and a set of values.
 
    The value can be a hash table (or alist), or an array of hashes/alists (in
@@ -129,15 +129,17 @@
   (assert (is-boolean upsert))
   (assert (or (null durability)
               (is-string durability)))
+  (assert (is-boolean return-vals))
   (let ((options nil))
     (when upsert (push (cons "upsert" t) options))
     (when durability (push (cons "durability" durability) options))
+    (when return-vals (push (cons "return_vals" t) options))
     (create-term +term-term-type-insert+
                  (list (wrap-in-term table)
                        (wrap-in-term sequence/object))
                  options)))
 
-(defcommand update (select object/reql-function &key non-atomic durability)
+(defcommand update (select object/reql-function &key non-atomic durability return-vals)
   "Update an object or set of objects (a select) using the given object or REQL
    function object. Supports using non-atomic writing via :non-atomic."
   (assert (is-select select))
@@ -147,15 +149,17 @@
   (assert (is-boolean non-atomic))
   (assert (or (null durability)
               (is-string durability)))
+  (assert (is-boolean return-vals))
   (let ((options nil))
     (when non-atomic (push (cons "non_atomic" t) options))
     (when durability (push (cons "durability" durability) options))
+    (when return-vals (push (cons "return_vals" t) options))
     (create-term +term-term-type-update+
                  (list (wrap-in-term select)
                        (wrap-in-term object/reql-function))
                  options)))
 
-(defcommand replace (select object/reql-function &key non-atomic durability)
+(defcommand replace (select object/reql-function &key non-atomic durability return-vals)
   "Replace an entire object or set of objects (a select) using the given object
    REQL function string. Supports using non-atomic writing via :non-atomic.
    
@@ -167,21 +171,25 @@
   (assert (is-boolean non-atomic))
   (assert (or (null durability)
               (is-string durability)))
+  (assert (is-boolean return-vals))
   (let ((options nil))
     (when non-atomic (push (cons "non_atomic" t) options))
     (when durability (push (cons "durability" durability) options))
+    (when return-vals (push (cons "return_vals" t) options))
     (create-term +term-term-type-replace+
                  (list (wrap-in-term select)
                        (wrap-in-term object/reql-function))
                  options)))
 
-(defcommand delete (select &key durability)
+(defcommand delete (select &key durability return-vals)
   "Delete an object or set of objects (a select)."
   (assert (is-select select))
   (assert (or (null durability)
               (is-string durability)))
+  (assert (is-boolean return-vals))
   (let ((options nil))
     (when durability (push (cons "durability" durability) options))
+    (when return-vals (push (cons "return_vals" t) options))
     (create-term +term-term-type-delete+
                  (list (wrap-in-term select))
                  options)))

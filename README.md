@@ -267,10 +267,10 @@ For a better understanding of the return types of the following commands, see
 - `index-create (table name &optional reql-function) => object`
 - `index-drop (table name) => object`
 - `index-list (table) => array`
-- `insert (table sequence/object &key upsert durability) => object`
-- `update (select object/function &key non-atomic durability) => object`
-- `replace (select object/function &key non-atomic durability) => object`
-- `delete (select &key durability) => object`
+- `insert (table sequence/object &key upsert durability return-vals) => object`
+- `update (select object/function &key non-atomic durability return-vals) => object`
+- `replace (select object/function &key non-atomic durability return-vals) => object`
+- `delete (select &key durability return-vals) => object`
 - `db (db-name) => db`
 - `table (table-name) => sequence`
 - `get (table item-id) => object`
