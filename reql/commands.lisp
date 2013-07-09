@@ -563,6 +563,7 @@
   (push field fields)
   (dolist (field fields)
     (assert (or (is-string field)
+                (is-array field)
                 (is-object field))))
   (create-term +term-term-type-pluck+
                (cl:append (list (wrap-in-term sequence/object))
