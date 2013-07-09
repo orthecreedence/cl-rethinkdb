@@ -242,7 +242,7 @@ Default: `:list`
 ### \*object-type\*
 If an object (as in, key/value object) is returned from RethinkDB, it can be
 encoded as a hash table (if `*object-type*` is `:hash`) or as an association
-list (if `*object-type* is `:alist`). Hash tables are almost always more
+list (if `*object-type*` is `:alist`). Hash tables are almost always more
 performant, but alists can be easier to debug. Your choice.
 
 Default: `:hash`
