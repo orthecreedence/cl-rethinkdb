@@ -249,9 +249,11 @@
   "Grabs objects from a selection where the primary keys are between two values."
   (assert (is-select select))
   (assert (or (null left)
-              (is-pkey left)))
+              (is-pkey left)
+              (is-array left)))
   (assert (or (null right)
-              (is-pkey right)))
+              (is-pkey right)
+              (is-array right)))
   (assert (or (null index)
               (stringp index)))
   (let ((options nil))
