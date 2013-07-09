@@ -65,7 +65,8 @@
 
 (defun is-array (object)
   "Determine if the given object is an array term/type."
-  (or (is-term (list +term-term-type-make-array+
+  (or (listp object)
+      (is-term (list +term-term-type-make-array+
                      +term-term-type-index-list+
                      +term-term-type-append+
                      +term-term-type-prepend+
@@ -116,7 +117,7 @@
                      +term-term-type-index-drop+
                      +term-term-type-implicit-var+
                      +term-term-type-var+
-                     +term-term-type-getattr+
+                     +term-term-type-get-field+
                      +term-term-type-reduce+
                      +term-term-type-nth+
                      +term-term-type-funcall+
