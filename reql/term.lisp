@@ -14,7 +14,9 @@
   "Creates and returns a term assoc pair, used for optional args."
   (let ((term-assoc (make-instance 'term-assoc-pair)))
     (setf (key term-assoc) (pb:string-field key)
-          (val term-assoc) (term-from-datum (create-datum value)))
+          (val term-assoc) (if (typep value 'term)
+                               value
+                               (term-from-datum (create-datum value))))
     term-assoc))
 
 (defun create-term (type &optional args options)

@@ -7,6 +7,11 @@
   "Make sure a sequence type is wrapped in a term."
   (cond ((typep object 'term)
          object)
+        ((typep object 'object)
+         (let ((optargs nil))
+           (do-hash/alist ((k v) object)
+             (push (cons k (wrap-in-term v)) optargs))
+           (term-object optargs)))
         (t
          (term-from-datum (create-datum object)))))
 

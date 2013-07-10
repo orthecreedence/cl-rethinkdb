@@ -113,6 +113,7 @@
       (typep object 'hash-table)
       (is-function object)
       (is-term (list +term-term-type-get+
+                     +term-term-type-datum+
                      +term-term-type-index-create+
                      +term-term-type-index-drop+
                      +term-term-type-implicit-var+
