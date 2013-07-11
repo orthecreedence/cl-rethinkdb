@@ -71,6 +71,7 @@
                      +term-term-type-append+
                      +term-term-type-prepend+
                      +term-term-type-difference+
+                     +term-term-type-get-field+
                      +term-term-type-set-insert+
                      +term-term-type-set-intersection+
                      +term-term-type-set-union+
@@ -97,6 +98,7 @@
                      +term-term-type-gt+
                      +term-term-type-ge+
                      +term-term-type-not+
+                     +term-term-type-get-field+
                      +term-term-type-contains+
                      +term-term-type-is-empty+
                      +term-term-type-has-fields+
@@ -145,6 +147,7 @@
       (is-function object)
       (is-term (list +term-term-type-add+
                      +term-term-type-var+
+                     +term-term-type-get-field+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)))
@@ -158,6 +161,7 @@
                      +term-term-type-mul+
                      +term-term-type-div+
                      +term-term-type-mod+
+                     +term-term-type-get-field+
                      +term-term-type-count+
                      +term-term-type-var+
                      +term-term-type-funcall+
