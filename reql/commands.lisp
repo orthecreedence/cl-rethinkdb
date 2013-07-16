@@ -273,7 +273,8 @@
 (defcommand filter (sequence object/reql-function &key default)
   "Filter a sequence by either an object or a REQL function."
   (assert (is-sequence sequence))
-  (assert (or (is-object object/reql-function)
+  (assert (or (is-boolean object/reql-function)
+              (is-object object/reql-function)
               (and (is-function object/reql-function)
                    (= (num-args object/reql-function) 1))))
   (assert (is-datum default))
