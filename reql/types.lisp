@@ -36,6 +36,7 @@
   (or (typep object 'list)
       (typep object 'vector)
       (is-select object)
+      (is-array object)
       (is-term (list +term-term-type-slice+
                      +term-term-type-skip+
                      +term-term-type-limit+

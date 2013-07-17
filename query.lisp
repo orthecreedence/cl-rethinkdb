@@ -288,6 +288,13 @@
           (finish future)))
     future))
 
+(defun stop/disconnect (sock cursor)
+  "Call stop on a cursor and disconnect the passed socket."
+  (if (cursorp cursor)
+      (wait-for (stop sock cursor)
+        (disconnect sock))
+      (disconnect sock)))
+
 (defun next (sock cursor)
   "Grab the next result from a cursor. Always returns a future since it may have
    to get more results from the server."

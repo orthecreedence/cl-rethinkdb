@@ -127,6 +127,7 @@ Cursor functions/methods:
 - [to-array](#to-array-function)
 - [each](#each-function)
 - [stop](#stop-function)
+- [stop/disconnect](#stop-disconnect-function)
 
 ### cursorp (function)
 ```common-lisp
@@ -219,6 +220,18 @@ Stops a currently open query/cursor. This cleans up the cursor locally, and also
 lets RethinkDB know that the results for this cursor are no longer needed.
 Returns a future that is finished with *no values* when the operation is
 complete.
+
+### stop/disconnect (function)
+```common-lisp
+(defun stop/disconnect (sock cursor))
+  => nil
+```
+Calls [stop](#stop-function) on a cursor, and after the stop operation is done
+closes the passed socket. Useful as a final termination to an operation that
+uses a cursor.
+
+Note that this function checks if the object passed is indeed a cursor, and if
+not, just disconnects the socket without throwing any errors.
 
 ### disconnect (function)
 ```common-lisp

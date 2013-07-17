@@ -60,6 +60,7 @@
            :to-array
            :each
            :stop
+           :stop/disconnect
 
            ;; export ReQL DSL functions
            :r
