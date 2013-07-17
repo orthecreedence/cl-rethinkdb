@@ -13,6 +13,19 @@ This driver is built so that later on, more than one TCP backend can be used.
 Right now, the only one implemented is cl-async, but usocket/IOLib could just as
 easily be used if *someone* puts in the time.
 
+Type issues
+===========
+This driver has been working great for me for some time now. The biggest issue I
+run into while using it is type mismatches.
+
+For instance, I'll construct a perfectly valid query, and the driver will whine
+about how an assert failed while checking one of the types of the arguments in
+the query.
+
+If this happens, please open an issue and I'll do my best to fix it in a few
+hours. I do my best to match the type hierarchy from the query specification to
+the internal types used, but even *I* make mistakes sometimes.
+
 Documentation
 =============
 The driver makes extensive use of futures, as mentioned, so be sure to know your
