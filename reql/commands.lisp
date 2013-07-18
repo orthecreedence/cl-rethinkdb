@@ -150,8 +150,8 @@
    function object. Supports using non-atomic writing via :non-atomic."
   (assert (is-select select))
   (assert (or (is-object object/reql-function)
-              (is-function object/reql-function)))
-  (assert-fn-args object/reql-function 2)
+              (and (is-function object/reql-function)
+                   (= (num-args object/reql-function) 1))))
   (assert (is-boolean non-atomic))
   (assert (or (null durability)
               (is-string durability)))
