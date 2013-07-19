@@ -107,6 +107,7 @@
                      +term-term-type-all+
                      +term-term-type-var+
                      +term-term-type-funcall+
+                     +term-term-type-default+
                      +term-term-type-branch+)
                object)))
 
