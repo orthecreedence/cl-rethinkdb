@@ -342,15 +342,15 @@
                (list (wrap-in-term sequence)
                      (wrap-in-term reql-function))))
 
-(defcommand with-fields (sequence &rest strings)
+(defcommand with-fields (sequence &rest paths)
   "Grab only objects in the sequence that have ALL of the specified field names
    and run a pluck() on those fields."
   (assert (is-sequence sequence))
-  (dolist (string strings)
-    (assert (is-string string)))
+  (dolist (path paths)
+    (assert (is-path path)))
   (create-term +term-term-type-with-fields+
                (cl:append (list sequence)
-                          (loop for s in strings collect (wrap-in-term s)))))
+                          (loop for p in paths collect (wrap-in-term p)))))
 
 (defcommand concat-map (sequence reql-function)
   "Construct a sequence of all elements returned by the given mapping function."
@@ -509,13 +509,15 @@
                        (term-array fields)
                        (wrap-in-term reduce-fn)))))
 
-(defcommand contains (sequence datum)
+(defcommand contains (sequence datum-or-fn)
   "Returns whether or not a sequence contains all given values."
   (assert (is-sequence sequence))
-  (assert (is-datum datum))
+  (assert (or (is-datum datum-or-fn)
+              (and (is-function datum-or-fn)
+                   (assert-fn-args datum-or-fn 1))))
   (create-term +term-term-type-contains+
                (cl:append (list (wrap-in-term sequence)
-                                (wrap-in-term datum)))))
+                                (wrap-in-term datum-or-fn)))))
 
 ;; -----------------------------------------------------------------------------
 ;; reductions
@@ -564,33 +566,31 @@
         (attr row field)
         row)))
 
-(defcommand pluck (sequence/object field &rest fields)
+(defcommand pluck (sequence/object path &rest paths)
   "Given a sequence or object, return a sequence or object with only the given
-   field names present."
+   path names present."
   (assert (or (is-object sequence/object)
               (is-sequence sequence/object)))
-  (push field fields)
-  (dolist (field fields)
-    (assert (or (is-string field)
-                (is-array field)
-                (is-object field))))
+  (push path paths)
+  (dolist (path paths)
+    (assert (is-path path)))
   (create-term +term-term-type-pluck+
                (cl:append (list (wrap-in-term sequence/object))
-                          (loop for f in fields
-                                collect (wrap-in-term f)))))
+                          (loop for p in paths
+                                collect (wrap-in-term p)))))
 
-(defcommand without (sequence/object field &rest fields)
+(defcommand without (sequence/object path &rest paths)
   "Given a sequence or object, return a sequence or object without the given
-   field names present."
+   path names present."
   (assert (or (is-object sequence/object)
               (is-sequence sequence/object)))
-  (push field fields)
-  (dolist (field fields)
-    (assert (is-string field)))
+  (push path paths)
+  (dolist (path paths)
+    (assert (is-path path)))
   (create-term +term-term-type-without+
                (cl:append (list (wrap-in-term sequence/object))
-                          (loop for f in fields
-                                collect (wrap-in-term f)))))
+                          (loop for p in paths
+                                collect (wrap-in-term p)))))
 
 (defcommand merge (object &rest objects)
   "Merge objects together (merge their fields into one object)."
@@ -657,14 +657,14 @@
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))
 
-(defcommand has-fields (object string &rest strings)
+(defcommand has-fields (object path &rest paths)
   (assert (is-object object))
-  (push string strings)
-  (dolist (string strings)
-    (assert (is-string string)))
+  (push path paths)
+  (dolist (path paths)
+    (assert (is-path path)))
   (create-term +term-term-type-has-fields+
                (cl:append (list object)
-                          (loop for s in strings collect (wrap-in-term s)))))
+                          (loop for p in paths collect (wrap-in-term p)))))
 
 (defcommand insert-at (array index datum)
   "Insert the given object into the array at the specified index."
@@ -919,4 +919,10 @@
   "Convert the given JSON string into a datum."
   (assert (is-string string))
   (create-term +term-term-type-json+ (list (wrap-in-term string))))
+
+(defcommand literal (object)
+  "Make sure merge/filter know that the passed object should be taken as a full
+   replacement/filter, not a path selector."
+  (assert (is-object object))
+  (create-term +term-term-type-literal+ (list (wrap-in-term object))))
 

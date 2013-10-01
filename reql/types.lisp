@@ -180,6 +180,13 @@
                      +term-term-type-match+)
                object)))
 
+(defun is-path (object)
+  "Test if an object is a RethinkDB object path."
+  (or (is-string object)
+      (is-object object)
+      (is-array object)
+      (is-datum object)))
+
 (deftype pkey () '(or real string))
 
 (defun is-pkey (object)
