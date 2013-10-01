@@ -140,7 +140,8 @@
                      +term-term-type-foreach+
                      +term-term-type-funcall+
                      +term-term-type-branch+
-                     +term-term-type-info+)
+                     +term-term-type-info+
+                     +term-term-type-literal+)
                object)))
 
 (defun is-string (object)
