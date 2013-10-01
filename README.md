@@ -375,7 +375,7 @@ For a better understanding of the return types of the following commands, see
 - `typeof (object) => type-string`
 - `info (object) => object`
 - `json (string) => object`
-- `literal (object) => object`
+- `literal (&optional object) => object`
 
 Errors
 ------

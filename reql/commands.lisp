@@ -920,9 +920,12 @@
   (assert (is-string string))
   (create-term +term-term-type-json+ (list (wrap-in-term string))))
 
-(defcommand literal (object)
+(defcommand literal (&optional object)
   "Make sure merge/filter know that the passed object should be taken as a full
    replacement/filter, not a path selector."
-  (assert (is-object object))
-  (create-term +term-term-type-literal+ (list (wrap-in-term object))))
+  (assert (or (null object)
+              (is-object object)))
+  (if object
+      (create-term +term-term-type-literal+ (list (wrap-in-term object)))
+      (create-term +term-term-type-literal+)))
 
