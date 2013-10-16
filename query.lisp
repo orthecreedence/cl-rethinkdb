@@ -2,6 +2,7 @@
 
 (define-condition query-error (simple-error)
   ((token :reader query-error-token :initarg :token :initform nil)
+   (query :reader query-error-query :initarg :query :initform nil)
    (msg :reader query-error-msg :initarg :msg :initform ""))
   (:report (lambda (c s) (format s "Query failed (~a): ~a" (query-error-token c) (query-error-msg c))))
   (:documentation "A general query failure condition."))
@@ -11,7 +12,7 @@
   (:documentation "A client error condition."))
 
 (define-condition query-compile-error (query-error) ()
-  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a~%---~%~a~%" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A query compile error condition."))
   
 (define-condition query-runtime-error (query-error) ()
@@ -123,12 +124,14 @@
       (when (<= response-size (length response-bytes))
         response-bytes))))
 
-(defun parse-response (response)
+(defun parse-response (response &key query-form)
   "Parses a RethinkDB response (deserialized into protobuf classes) into a
    lispy/readable format.
    
    Also throws any errors encountered in the response (client error, compile
-   error, runtime error)."
+   error, runtime error). If the query form is passed in via :query-form, will
+   attach it to the thrown conditions, allowing closer inspection of the failed
+   query."
   (let* ((response-type (rdp:type response))
          (token (rdp:token response))
          (cursor (get-cursor token))
@@ -167,6 +170,7 @@
                                     ((eq response-type rdp:+response-response-type-runtime-error+)
                                      'query-runtime-error))
                               :msg fail-msg
+                              :query query-form
                               :token token))
              ;; because i'm paranoid
              (setf value-set-p nil))))
@@ -245,7 +249,7 @@
               (size (length response-bytes)))
         (pb:merge-from-array response response-bytes 0 size)
         (handler-case
-          (parse-response response)
+          (parse-response response :query-form query-form)
           (error (e)
             (signal-error future e)))))
     (setf (cursor-state cursor) :sent)
