@@ -304,7 +304,7 @@ For a better understanding of the return types of the following commands, see
 - `get (table item-id) => object`
 - `get-all (table key/keys &key index) => array`  
   (`key/keys` can be either a string type or a list of string types)
-- `between (sequence &key left right index) => sequence`
+- `between (sequence left right &key index) => sequence`
 - `filter (sequence object/function &key default) => sequence`
 - `inner-join (sequence1 sequence2 function) => sequence`
 - `outer-join (sequence1 sequence2 function) => sequence`

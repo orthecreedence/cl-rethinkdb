@@ -255,7 +255,7 @@
                               (loop for k in keys collect (wrap-in-term k)))
                    options))))
 
-(defcommand between (select &key left right index)
+(defcommand between (select left right &key index left-bound right-bound)
   "Grabs objects from a selection where the primary keys are between two values."
   (assert (is-select select))
   (assert (or (null left)
@@ -266,8 +266,16 @@
               (is-array right)))
   (assert (or (null index)
               (stringp index)))
+  (assert (or (null left-bound)
+              (string= left-bound "open")
+              (string= left-bound "closed")))
+  (assert (or (null right-bound)
+              (string= right-bound "open")
+              (string= right-bound "closed")))
   (let ((options nil))
     (when index (push (cons "index" index) options))
+    (when left-bound (push (cons "left_bound" left-bound) options))
+    (when right-bound (push (cons "right_bound" right-bound) options))
     (create-term +term-term-type-between+
                  (list (wrap-in-term select)
                        (wrap-in-term left)
