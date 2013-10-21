@@ -178,7 +178,8 @@
       (is-object object)
       (is-boolean object)
       (is-term (list +term-term-type-default+
-                     +term-term-type-match+)
+                     +term-term-type-match+
+                     +term-term-type-coerce-to+)
                object)))
 
 (defun is-path (object)
