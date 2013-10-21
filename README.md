@@ -286,12 +286,13 @@ get a good handle on the following.
 For a better understanding of the return types of the following commands, see
 [the REQL type hierarchy in the protobuf specification](https://github.com/rethinkdb/rethinkdb/blob/next/src/rdb_protocol/ql2.proto).
 
+- `db (db-name) => database`
 - `db-drop (db-name) => object`
 - `db-list () => object`
 - `table-create (db table-name &key datacenter primary-key cache-size durability) => object`
 - `table-drop (db table-name) => object`
 - `table-list (db) => object`
-- `index-create (table name &optional reql-function) => object`
+- `index-create (table name &key function multi) => object`
 - `index-drop (table name) => object`
 - `index-list (table) => array`
 - `insert (table sequence/object &key upsert durability return-vals) => object`

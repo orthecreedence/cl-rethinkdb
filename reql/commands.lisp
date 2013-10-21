@@ -92,21 +92,25 @@
   (assert (is-term +term-term-type-db+ database))
   (create-term +term-term-type-table-list+ (list (wrap-in-term database))))
 
-(defcommand index-create (table name &optional reql-function)
+(defcommand index-create (table name &key function multi)
   "Create an index on the table with the given name. If a function is specified,
    that index will be created using the return values of that function for each
    field as opposed to the values of each field."
   (assert (is-term +term-term-type-table+ table))
   (assert (is-string name))
-  (assert (or (null reql-function)
-              (and (is-function reql-function)
-                   (= (num-args reql-function) 1))))
-  (create-term +term-term-type-index-create+
-               (cl:append
-                 (list (wrap-in-term table)
-                       (wrap-in-term name))
-                 (when reql-function
-                   (list (wrap-in-term reql-function))))))
+  (assert (or (null function)
+              (and (is-function function)
+                   (= (num-args function) 1))))
+  (assert (is-boolean multi))
+  (let ((options nil))
+    (when multi (push (cons "multi" t) options))
+    (create-term +term-term-type-index-create+
+                 (cl:append
+                   (list (wrap-in-term table)
+                         (wrap-in-term name))
+                   (when function
+                     (list (wrap-in-term function))))
+                 options)))
 
 (defcommand index-drop (table name)
   "Remove an index from a table."
