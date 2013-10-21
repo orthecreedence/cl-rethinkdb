@@ -13,6 +13,10 @@
            (do-hash/alist ((k v) object)
              (push (cons k (wrap-in-term v)) optargs))
            (term-object optargs)))
+        ((and (or (listp object)
+                  (vectorp object))
+              (not (stringp object)))
+         (term-array object))
         (t
          (term-from-datum (create-datum object)))))
 

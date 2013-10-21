@@ -49,7 +49,12 @@
   (create-term +term-term-type-make-array+
                (let ((final nil))
                  (do-list/vector (o list/vector)
-                   (push (term-from-datum (create-datum o)) final))
+                   (if (typep o 'term)
+                       (push o final)
+                       (let ((datum (if (typep o 'datum)
+                                        o
+                                        (create-datum o))))
+                         (push (term-from-datum datum) final))))
                  (nreverse final))))
 
 (defun term-object (alist)
