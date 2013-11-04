@@ -635,15 +635,15 @@
 
 (defcommand difference (array1 array2)
   "Remove all elements of array2 from array1 and return the resulting array."
-  (assert (is-array array1))
-  (assert (is-array array2))
+  (assert (is-sequence array1))
+  (assert (is-sequence array2))
   (create-term +term-term-type-difference+
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))
 
 (defcommand set-insert (array datum)
   "Add the specified datum to the given set, return the resulting set."
-  (assert (is-array array))
+  (assert (is-sequence array))
   (assert (is-datum datum))
   (create-term +term-term-type-set-insert+
                (list (wrap-in-term array)
@@ -651,24 +651,24 @@
 
 (defcommand set-intersection (array1 array2)
   "Return the intersection of two sets."
-  (assert (is-array array1))
-  (assert (is-array array2))
+  (assert (is-sequence array1))
+  (assert (is-sequence array2))
   (create-term +term-term-type-set-intersection+
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))
 
 (defcommand set-union (array1 array2)
   "Return the union of two sets."
-  (assert (is-array array1))
-  (assert (is-array array2))
+  (assert (is-sequence array1))
+  (assert (is-sequence array2))
   (create-term +term-term-type-set-union+
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))
 
 (defcommand set-difference (array1 array2)
   "Return the difference of two sets."
-  (assert (is-array array1))
-  (assert (is-array array2))
+  (assert (is-sequence array1))
+  (assert (is-sequence array2))
   (create-term +term-term-type-set-difference+
                (list (wrap-in-term array1)
                      (wrap-in-term array2))))

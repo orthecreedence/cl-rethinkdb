@@ -86,7 +86,8 @@
                      +term-term-type-table-list+
                      +term-term-type-var+
                      +term-term-type-funcall+
-                     +term-term-type-branch+)
+                     +term-term-type-branch+
+                     +term-term-type-coerce-to+)
                object)))
 
 (defun is-boolean (object)
