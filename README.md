@@ -274,6 +274,26 @@ performant, but alists can be easier to debug. Your choice.
 
 Default: `:hash`
 
+Thread safety
+-------------
+`cl-rethinkdb` stores all its global state in one variable: `*state*`, which is
+exported in the `cl-rethinkdb` package. The `*state*` variable is an instance of
+the `cl-rethinkdb:state` CLOS class. This lets you declare a thread-local
+variable when starting a thread so there are no collisions when accessing the
+library from multiple threads:
+
+```common-lisp
+(let ((cl-rethinkdb:*state* (make-instance 'cl-rethinkdb:state)))
+  (as:with-event-loop ()
+    ;; run queries in this context
+    ))
+```
+
+Using `let` in the above context declares `*state*` as a thread local variable,
+as opposed to using `setf`, which will just modify the global, shared context.
+Be sure that the `let` form happens at the start of the thread and encompasses
+the event loop form.
+
 Commands
 --------
 All of the following are accessible via the [r DSL macro](#r-macro) by prefixing

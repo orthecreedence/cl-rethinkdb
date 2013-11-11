@@ -36,6 +36,8 @@
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :cl-async-future :cl-rethinkdb-reql)
   (:export :*state*
+           :state
+           
            :*sequence-type*
            :*object-type*
            

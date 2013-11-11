@@ -1,7 +1,7 @@
 (asdf:defsystem cl-rethinkdb
   :author "Andrew Danger Lyon <orthecreedence@gmail.com>"
   :license "MIT"
-  :version "0.3.4"
+  :version "0.3.5"
   :description "A RethinkDB driver for Common Lisp"
   :depends-on (#:protobuf #:cl-async-future #:cl-async)
   :components
