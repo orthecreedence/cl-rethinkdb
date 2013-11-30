@@ -303,7 +303,7 @@
         (query (make-instance 'rdp:query))
         (cursor (get-cursor token)))
     (setf (rdp:token query) (the fixnum token)
-          (rdp:type query) +query-query-type-continue+
+          (rdp:type query) rdp:+query-query-type-continue+
           (cursor-future cursor) future)
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
@@ -326,7 +326,7 @@
     (if (eq (cursor-state cursor) :partial)
         (let ((query (make-instance 'rdp:query)))
           (setf (rdp:token query) (the fixnum token)
-                (rdp:type query) +query-query-type-stop+)
+                (rdp:type query) rdp:+query-query-type-stop+)
           (forward-errors (future)
             (wait-for (do-send sock (serialize-protobuf query))
               (remove-cursor cursor)
