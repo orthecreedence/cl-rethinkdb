@@ -146,11 +146,18 @@
     ;; by default cursor is finished
     (setf (cursor-state cursor) :finished)
     (cond ((eq response-type rdp:+response-response-type-success-atom+)
-           ;; we have an atom, finish the future with the atom value.
-           (setf value (cl-rethinkdb-reql::datum-to-lisp (aref (rdp:response response) 0)
-                                                         :array-type *sequence-type*
-                                                         :object-type *object-type*)
-                 value-set-p t))
+           ;; we have an atom, pull it out for further processing
+           (let* ((reql-val (aref (rdp:response response) 0)))
+             (if (eq (rdp:type reql-val) rdp:+datum-datum-type-r-array+)
+                 ;; convert arrays into cursors
+                 (setf (cursor-results cursor) (rdp:r-array reql-val)
+                       value cursor
+                       value-set-p t)
+                 ;; we got an object atom
+                 (setf value (cl-rethinkdb-reql::datum-to-lisp reql-val
+                                                               :array-type *sequence-type*
+                                                               :object-type *object-type*)
+                       value-set-p t))))
           ((eq response-type rdp:+response-response-type-success-sequence+)
            ;; we have a sequence, so return a cursor. results accessible via (next ...)
            (setf (cursor-results cursor) (rdp:response response)
