@@ -58,6 +58,7 @@
            :disconnect
 
            :run
+           :wait-complete
            :next
            :has-next
            :to-array

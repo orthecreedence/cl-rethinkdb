@@ -4,7 +4,7 @@ This is an async [RethinkDB](http://www.rethinkdb.com/) driver for *everyone's*
 favorite programming language. It does its best to follow the [query language
 specification](http://www.rethinkdb.com/api/#js).
 
-*This driver is up to date with RethinkDB's v1.10 protocol.* __Exception:__ date
+*This driver is up to date with RethinkDB's v1.11 protocol.* __Exception:__ date
 support is not yet included in this driver.
 
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
@@ -92,7 +92,7 @@ which provides an interface to iterate over a set of atoms.
 
 ### connect (function)
 ```common-lisp
-(defun connect (host port &key db use-outdated (read-timeout 5)))
+(defun connect (host port &key db use-outdated noreply profile (read-timeout 5)))
   => future (tcp-socket)
 ```
 Connects a socket to the given host/port and returns a future that's finished
@@ -108,11 +108,14 @@ Usage:
 ### run (function)
 ```common-lisp
 (defun run (sock query-form))
-  => future (atom/cursor)
+  => future (atom/cursor profile-data)
 ```
 Run a query against the given socket (connected using [connect](#connect-function)).
 Returns a future finished with either the atom the query returns or a cursor to
 the query results.
+
+If `profile` is `t` when calling [connect](#connect), the second future value
+will be the profile data returned with the query.
 
 `run` can signal the following errors on the future it returns:
 
@@ -128,6 +131,16 @@ Example
   (format t "My user is: ~s~%" value)
   (disconnect sock))
 ```
+
+### wait-complete (function)
+```common-lisp
+(defun wait-complete (sock))
+  => future (t)
+```
+Waits for all queries sent on this socket with `noreply => t` to finish. This
+lets you queue up a number of write operations on a socket. You can then call
+`wait-complete` on the socket and it will return the response when *all* the
+queued operations finish.
 
 ### cursor (class)
 The cursor class keeps track of queries where a sequence of results is returned
@@ -312,9 +325,12 @@ For a better understanding of the return types of the following commands, see
 - `table-create (db table-name &key datacenter primary-key cache-size durability) => object`
 - `table-drop (db table-name) => object`
 - `table-list (db) => object`
+- `sync (table) => object`
 - `index-create (table name &key function multi) => object`
 - `index-drop (table name) => object`
 - `index-list (table) => array`
+- `index-status (table &rest names) => array`
+- `index-wait (table &rest names) => array`
 - `insert (table sequence/object &key upsert durability return-vals) => object`
 - `update (select object/function &key non-atomic durability return-vals) => object`
 - `replace (select object/function &key non-atomic durability return-vals) => object`

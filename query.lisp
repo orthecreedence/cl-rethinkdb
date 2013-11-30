@@ -137,7 +137,12 @@
          (cursor (get-cursor token))
          (future (cursor-future cursor))
          (value nil)
-         (value-set-p nil))
+         (value-set-p nil)
+         (profile (rdp:profile response))
+         (profile (when profile
+                    (cl-rethinkdb-reql::datum-to-lisp profile
+                                                      :array-type *sequence-type*
+                                                      :object-type *object-type*))))
     ;; by default cursor is finished
     (setf (cursor-state cursor) :finished)
     (cond ((eq response-type rdp:+response-response-type-success-atom+)
@@ -157,6 +162,11 @@
                  value cursor
                  value-set-p t
                  (cursor-state cursor) :partial))
+          ((eq response-type rdp:+response-response-type-wait-complete+)
+           ;; we have a NOREPLY_WAIT response. just finish.
+           (setf (cursor-results cursor) (rdp:response response)
+                 value t
+                 value-set-p t))
           ((or (find response-type (list rdp:+response-response-type-client-error+
                                          rdp:+response-response-type-compile-error+
                                          rdp:+response-response-type-runtime-error+)))
@@ -175,13 +185,13 @@
              ;; because i'm paranoid
              (setf value-set-p nil))))
     (when value-set-p
-      (finish future value))
+      (finish future value profile))
     ;; if the query is finished, remove it from state tracking.
     (when (eq (cursor-state cursor) :finished)
       (remove-cursor cursor)))
   response)
 
-(defun connect (host port &key db use-outdated (read-timeout 5))
+(defun connect (host port &key db use-outdated noreply profile (read-timeout 5))
   "Connect to a RethinkDB database, optionally specifying the database."
   (let ((future (do-connect host port :read-timeout read-timeout)))
     (alet ((sock future))
@@ -198,6 +208,10 @@
           (push `("db" . ,(cl-rethinkdb-reql::db db)) kv))
         (when use-outdated
           (push `("use_outdated" . ,(not (not use-outdated))) kv))
+        (when noreply
+          (push `("noreply" . ,(not (not noreply))) kv))
+        (when profile
+          (push '("profile" . t) kv))
         (setf (conn-kv options) kv
               (socket-data sock) options)))
     future))
@@ -255,6 +269,27 @@
     (setf (cursor-state cursor) :sent)
     future))
 
+(defun wait-complete (sock)
+  "Wait for noreply => t queries to come back LOL."
+  (let* ((future (make-future))
+         (token (generate-token))
+         (cursor (make-instance 'cursor
+                                :token token
+                                :future future)))
+    (setf (rdp:type query) rdp:+query-query-type-noreply-wait+
+          (rdp:token query) (the fixnum token))
+    (save-cursor token cursor)
+    (forward-errors (future)
+      (alet* ((response-bytes (do-send sock nil))
+              (response (make-instance 'rdp:response))
+              (size (length response-bytes)))
+        (pb:merge-from-array response response-bytes 0 size)
+        (handler-case
+          (parse-response response)
+          (error (e)
+            (signal-error future e)))))
+    future))
+
 (defun more (sock token)
   "Continue a query."
   (let ((future (make-future))
@@ -263,6 +298,8 @@
     (setf (rdp:token query) (the fixnum token)
           (rdp:type query) +query-query-type-continue+
           (cursor-future cursor) future)
+    ;; save the query with the token so it can be looked up later
+    (save-cursor token cursor)
     (forward-errors (future)
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
               (response (make-instance 'rdp:response))

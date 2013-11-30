@@ -24,7 +24,7 @@
 (cl:defconstant +maximum-version-dummy-version+ +version-dummy-version-v0-2+)
 (cl:export '+maximum-version-dummy-version+)
 
-(cl:deftype query-query-type () '(cl:member 1 2 3))
+(cl:deftype query-query-type () '(cl:member 1 2 3 4))
 (cl:export 'query-query-type)
 
 (cl:defconstant +query-query-type-start+ 1)
@@ -33,10 +33,12 @@
 (cl:export '+query-query-type-continue+)
 (cl:defconstant +query-query-type-stop+ 3)
 (cl:export '+query-query-type-stop+)
+(cl:defconstant +query-query-type-noreply-wait+ 4)
+(cl:export '+query-query-type-noreply-wait+)
 
 (cl:defconstant +minimum-query-query-type+ +query-query-type-start+)
 (cl:export '+minimum-query-query-type+)
-(cl:defconstant +maximum-query-query-type+ +query-query-type-stop+)
+(cl:defconstant +maximum-query-query-type+ +query-query-type-noreply-wait+)
 (cl:export '+maximum-query-query-type+)
 
 (cl:deftype frame-frame-type () '(cl:member 1 2))
@@ -52,7 +54,7 @@
 (cl:defconstant +maximum-frame-frame-type+ +frame-frame-type-opt+)
 (cl:export '+maximum-frame-frame-type+)
 
-(cl:deftype response-response-type () '(cl:member 1 2 3 16 17 18))
+(cl:deftype response-response-type () '(cl:member 1 2 3 4 16 17 18))
 (cl:export 'response-response-type)
 
 (cl:defconstant +response-response-type-success-atom+ 1)
@@ -61,6 +63,8 @@
 (cl:export '+response-response-type-success-sequence+)
 (cl:defconstant +response-response-type-success-partial+ 3)
 (cl:export '+response-response-type-success-partial+)
+(cl:defconstant +response-response-type-wait-complete+ 4)
+(cl:export '+response-response-type-wait-complete+)
 (cl:defconstant +response-response-type-client-error+ 16)
 (cl:export '+response-response-type-client-error+)
 (cl:defconstant +response-response-type-compile-error+ 17)
@@ -73,7 +77,7 @@
 (cl:defconstant +maximum-response-response-type+ +response-response-type-runtime-error+)
 (cl:export '+maximum-response-response-type+)
 
-(cl:deftype datum-datum-type () '(cl:member 1 2 3 4 5 6))
+(cl:deftype datum-datum-type () '(cl:member 1 2 3 4 5 6 7))
 (cl:export 'datum-datum-type)
 
 (cl:defconstant +datum-datum-type-r-null+ 1)
@@ -88,13 +92,15 @@
 (cl:export '+datum-datum-type-r-array+)
 (cl:defconstant +datum-datum-type-r-object+ 6)
 (cl:export '+datum-datum-type-r-object+)
+(cl:defconstant +datum-datum-type-r-json+ 7)
+(cl:export '+datum-datum-type-r-json+)
 
 (cl:defconstant +minimum-datum-datum-type+ +datum-datum-type-r-null+)
 (cl:export '+minimum-datum-datum-type+)
-(cl:defconstant +maximum-datum-datum-type+ +datum-datum-type-r-object+)
+(cl:defconstant +maximum-datum-datum-type+ +datum-datum-type-r-json+)
 (cl:export '+maximum-datum-datum-type+)
 
-(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137))
+(cl:deftype term-term-type () '(cl:member 1 2 3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140))
 (cl:export 'term-term-type)
 
 (cl:defconstant +term-term-type-datum+ 1)
@@ -247,12 +253,18 @@
 (cl:export '+term-term-type-table-drop+)
 (cl:defconstant +term-term-type-table-list+ 62)
 (cl:export '+term-term-type-table-list+)
+(cl:defconstant +term-term-type-sync+ 138)
+(cl:export '+term-term-type-sync+)
 (cl:defconstant +term-term-type-index-create+ 75)
 (cl:export '+term-term-type-index-create+)
 (cl:defconstant +term-term-type-index-drop+ 76)
 (cl:export '+term-term-type-index-drop+)
 (cl:defconstant +term-term-type-index-list+ 77)
 (cl:export '+term-term-type-index-list+)
+(cl:defconstant +term-term-type-index-status+ 139)
+(cl:export '+term-term-type-index-status+)
+(cl:defconstant +term-term-type-index-wait+ 140)
+(cl:export '+term-term-type-index-wait+)
 (cl:defconstant +term-term-type-funcall+ 64)
 (cl:export '+term-term-type-funcall+)
 (cl:defconstant +term-term-type-branch+ 65)
@@ -360,7 +372,7 @@
 
 (cl:defconstant +minimum-term-term-type+ +term-term-type-datum+)
 (cl:export '+minimum-term-term-type+)
-(cl:defconstant +maximum-term-term-type+ +term-term-type-literal+)
+(cl:defconstant +maximum-term-term-type+ +term-term-type-index-wait+)
 (cl:export '+maximum-term-term-type+)
 
 (cl:defclass version-dummy (pb:protocol-buffer)
@@ -508,6 +520,10 @@
    :accessor obsolete-noreply
    :initform cl:nil
    :type cl:boolean)
+  (accepts-r-json
+   :accessor accepts-r-json
+   :initform cl:nil
+   :type cl:boolean)
   (global-optargs
    :accessor global-optargs
    :initform (cl:make-array
@@ -518,7 +534,7 @@
   (%has-bits%
    :accessor %has-bits%
    :initform 0
-   :type (cl:unsigned-byte 5))
+   :type (cl:unsigned-byte 6))
   (pb::%cached-size%
    :initform 0
    :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
@@ -618,6 +634,27 @@
   (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 0)
   (cl:values))
 (cl:export 'clear-obsolete-noreply)
+
+(cl:export 'accepts-r-json)
+
+
+(cl:defmethod (cl:setf accepts-r-json) :after (x (self query))
+  (cl:declare (cl:ignore x))
+  (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1))
+
+(cl:unless (cl:fboundp 'has-accepts-r-json)
+  (cl:defgeneric has-accepts-r-json (proto)))
+(cl:defmethod has-accepts-r-json ((self query))
+  (cl:logbitp 4 (cl:slot-value self '%has-bits%)))
+(cl:export 'has-accepts-r-json)
+
+(cl:unless (cl:fboundp 'clear-accepts-r-json)
+  (cl:defgeneric clear-accepts-r-json (proto)))
+(cl:defmethod clear-accepts-r-json ((self query))
+  (cl:setf (cl:slot-value self 'accepts-r-json) cl:nil)
+  (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 0)
+  (cl:values))
+(cl:export 'clear-accepts-r-json)
 
 (cl:export 'global-optargs)
 
@@ -746,6 +783,8 @@
         (cl:format stream " ~_token: ~s" (token self)))
       (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
         (cl:format stream " ~_obsolete-noreply: ~s" (obsolete-noreply self)))
+      (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_accepts-r-json: ~s" (accepts-r-json self)))
       (cl:format stream " ~_global-optargs: ~s" (global-optargs self))
       ))
   (cl:values))
@@ -756,6 +795,7 @@
     (cl:setf (cl:slot-value self 'query) cl:nil))
   (cl:setf (cl:slot-value self 'token) 0)
   (cl:setf (cl:slot-value self 'obsolete-noreply) cl:nil)
+  (cl:setf (cl:slot-value self 'accepts-r-json) cl:nil)
   (cl:setf (cl:slot-value self 'global-optargs)
            (cl:make-array 0 :element-type 'cl-rethinkdb-proto::query-assoc-pair
             :fill-pointer 0 :adjustable cl:t))
@@ -791,6 +831,10 @@
     (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
       (cl:incf size
         (cl:+ 1 1)))
+    ;; optional bool accepts_r_json = 5 [default = false];
+    (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+      (cl:incf size
+        (cl:+ 1 1)))
     ;; repeated .Query.AssocPair global_optargs = 6;
     (cl:let* ((v (cl:slot-value self 'global-optargs))
               (length (cl:length v)))
@@ -824,6 +868,10 @@
   (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 32))
     (cl:setf index (wire-format:write-boolean-carefully buffer index limit (cl:slot-value self 'obsolete-noreply))))
+  ;; optional bool accepts_r_json = 5 [default = false];
+  (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 40))
+    (cl:setf index (wire-format:write-boolean-carefully buffer index limit (cl:slot-value self 'accepts-r-json))))
   ;; repeated .Query.AssocPair global_optargs = 6;
   (cl:let* ((v (cl:slot-value self 'global-optargs))
             (length (cl:length v)))
@@ -879,6 +927,13 @@
             (cl:setf (cl:slot-value self 'obsolete-noreply) value)
             (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1)
             (cl:setf index new-index)))
+        ;; optional bool accepts_r_json = 5 [default = false];
+        ((40)
+          (cl:multiple-value-bind (value new-index)
+              (wire-format:read-boolean-carefully buffer index limit)
+            (cl:setf (cl:slot-value self 'accepts-r-json) value)
+            (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1)
+            (cl:setf index new-index)))
         ;; repeated .Query.AssocPair global_optargs = 6;
         ((50)
           (cl:multiple-value-bind (length new-index)
@@ -917,6 +972,9 @@
   (cl:when (cl:logbitp 3 (cl:slot-value from '%has-bits%))
     (cl:setf (cl:slot-value self 'obsolete-noreply) (cl:slot-value from 'obsolete-noreply))
     (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
+  (cl:when (cl:logbitp 4 (cl:slot-value from '%has-bits%))
+    (cl:setf (cl:slot-value self 'accepts-r-json) (cl:slot-value from 'accepts-r-json))
+    (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1))
 )
 
 
@@ -1250,10 +1308,14 @@
    :writer (cl:setf backtrace)
    :initform cl:nil
    :type (cl:or cl:null cl-rethinkdb-proto::backtrace))
+  (profile
+   :writer (cl:setf profile)
+   :initform cl:nil
+   :type (cl:or cl:null cl-rethinkdb-proto::datum))
   (%has-bits%
    :accessor %has-bits%
    :initform 0
-   :type (cl:unsigned-byte 4))
+   :type (cl:unsigned-byte 5))
   (pb::%cached-size%
    :initform 0
    :type (cl:integer 0 #.(cl:1- cl:array-dimension-limit)))
@@ -1344,6 +1406,36 @@
   (cl:values))
 (cl:export 'clear-backtrace)
 
+(cl:export 'profile)
+
+(cl:unless (cl:fboundp 'profile)
+  (cl:defgeneric profile (proto)))
+(cl:defmethod profile ((self response))
+  (cl:let ((result (cl:slot-value self 'profile)))
+    (cl:when (cl:null result)
+      (cl:setf result (cl:make-instance 'cl-rethinkdb-proto::datum))
+      (cl:setf (cl:slot-value self 'profile) result))
+      (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1)
+    result))
+
+(cl:defmethod (cl:setf profile) :after (x (self response))
+  (cl:declare (cl:ignore x))
+  (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1))
+
+(cl:unless (cl:fboundp 'has-profile)
+  (cl:defgeneric has-profile (proto)))
+(cl:defmethod has-profile ((self response))
+  (cl:logbitp 4 (cl:slot-value self '%has-bits%)))
+(cl:export 'has-profile)
+
+(cl:unless (cl:fboundp 'clear-profile)
+  (cl:defgeneric clear-profile (proto)))
+(cl:defmethod clear-profile ((self response))
+  (cl:setf (cl:slot-value self 'profile) cl:nil)
+  (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 0)
+  (cl:values))
+(cl:export 'clear-profile)
+
 
 (cl:defmethod cl:print-object ((self response) stream)
   (cl:pprint-logical-block (stream cl:nil)
@@ -1355,6 +1447,8 @@
       (cl:format stream " ~_response: ~s" (response self))
       (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
         (cl:format stream " ~_backtrace: ~s" (backtrace self)))
+      (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+        (cl:format stream " ~_profile: ~s" (profile self)))
       ))
   (cl:values))
 
@@ -1363,6 +1457,8 @@
   (cl:setf (cl:slot-value self 'token) 0)
   (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
     (cl:setf (cl:slot-value self 'backtrace) cl:nil))
+  (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+    (cl:setf (cl:slot-value self 'profile) cl:nil))
   (cl:setf (cl:slot-value self 'response)
            (cl:make-array 0 :element-type 'cl-rethinkdb-proto::datum
             :fill-pointer 0 :adjustable cl:t))
@@ -1375,6 +1471,9 @@
     (cl:dotimes (i length)
       (cl:unless (pb:is-initialized (cl:aref x i))
         (cl:return-from pb:is-initialized cl:nil))))
+  (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+    (cl:unless (pb:is-initialized (cl:slot-value self 'profile))
+      (cl:return-from pb:is-initialized cl:nil)))
   cl:t)
 
 (cl:defmethod pb:octet-size ((self response))
@@ -1390,6 +1489,10 @@
     ;; optional .Backtrace backtrace = 4;
     (cl:when (cl:logbitp 3 (cl:slot-value self '%has-bits%))
       (cl:let ((s (pb:octet-size (cl:slot-value self 'backtrace))))
+        (cl:incf size (cl:+ 1 s (varint:length32 s)))))
+    ;; optional .Datum profile = 5;
+    (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+      (cl:let ((s (pb:octet-size (cl:slot-value self 'profile))))
         (cl:incf size (cl:+ 1 s (varint:length32 s)))))
     ;; repeated .Datum response = 3;
     (cl:let* ((v (cl:slot-value self 'response))
@@ -1427,6 +1530,11 @@
     (cl:setf index (varint:encode-uint32-carefully buffer index limit 34))
     (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'backtrace) 'pb::%cached-size%)))
     (cl:setf index (pb:serialize (cl:slot-value self 'backtrace) buffer index limit)))
+  ;; optional .Datum profile = 5;
+  (cl:when (cl:logbitp 4 (cl:slot-value self '%has-bits%))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit 42))
+    (cl:setf index (varint:encode-uint32-carefully buffer index limit (cl:slot-value (cl:slot-value self 'profile) 'pb::%cached-size%)))
+    (cl:setf index (pb:serialize (cl:slot-value self 'profile) buffer index limit)))
   index)
 
 (cl:defmethod pb:merge-from-array ((self response) buffer start limit)
@@ -1479,6 +1587,20 @@
               (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
               (cl:when (cl:not (cl:= index (cl:+ new-index length)))
                 (cl:error "buffer overflow")))))
+        ;; optional .Datum profile = 5;
+        ((42)
+          (cl:multiple-value-bind (length new-index)
+              (varint:parse-uint31-carefully buffer index limit)
+            (cl:when (cl:> (cl:+ new-index length) limit)
+              (cl:error "buffer overflow"))
+            (cl:let ((message (cl:slot-value self 'profile)))
+              (cl:when (cl:null message)
+                (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
+                (cl:setf (cl:slot-value self 'profile) message)
+                (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1))
+              (cl:setf index (pb:merge-from-array message buffer new-index (cl:+ new-index length)))
+              (cl:when (cl:not (cl:= index (cl:+ new-index length)))
+                (cl:error "buffer overflow")))))
         (cl:t
           (cl:when (cl:= (cl:logand tag 7) 4)
             (cl:return-from pb:merge-from-array index))
@@ -1503,6 +1625,13 @@
         (cl:setf (cl:slot-value self 'backtrace) message)
         (cl:setf (cl:ldb (cl:byte 1 3) (cl:slot-value self '%has-bits%)) 1))
      (pb:merge-from-message message (cl:slot-value from 'backtrace))))
+  (cl:when (cl:logbitp 4 (cl:slot-value from '%has-bits%))
+    (cl:let ((message (cl:slot-value self 'profile)))
+      (cl:when (cl:null message)
+        (cl:setf message (cl:make-instance 'cl-rethinkdb-proto::datum))
+        (cl:setf (cl:slot-value self 'profile) message)
+        (cl:setf (cl:ldb (cl:byte 1 4) (cl:slot-value self '%has-bits%)) 1))
+     (pb:merge-from-message message (cl:slot-value from 'profile))))
 )
 
 

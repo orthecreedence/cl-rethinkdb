@@ -96,6 +96,11 @@
   (assert (is-term +term-term-type-db+ database))
   (create-term +term-term-type-table-list+ (list (wrap-in-term database))))
 
+(defcommand sync (table)
+  "Make sure soft-writes are synced to disk on the given table."
+  (assert (is-term +term-term-type-table+ table))
+  (create-term +term-term-type-sync+ (list (wrap-in-term table))))
+
 (defcommand index-create (table name &key function multi)
   "Create an index on the table with the given name. If a function is specified,
    that index will be created using the return values of that function for each
@@ -128,6 +133,26 @@
   "List indexes in a table."
   (assert (is-term +term-term-type-table+ table))
   (create-term +term-term-type-index-list+ (list (wrap-in-term table))))
+
+(defcommand index-status (table &rest names)
+  "Check the status of the given index on a table (or of all indexes on he given
+   table if no name given)."
+  (assert (is-term +term-term-type-table+ table))
+  (dolist (name names)
+    (assert (is-string name)))
+  (create-term +term-term-type-index-status+
+               (cl:append (list (wrap-in-term table))
+                          (loop for name in names collect (wrap-in-term name)))))
+
+(defcommand index-wait (table &rest names)
+  "Wait for the specified index to be ready (or all indexes if no name
+   specified)."
+  (assert (is-term +term-term-type-table+ table))
+  (dolist (name names)
+    (assert (is-string name)))
+  (create-term +term-term-type-index-wait+
+               (cl:append (list (wrap-in-term table))
+                          (loop for name in names collect (wrap-in-term name)))))
 
 ;; -----------------------------------------------------------------------------
 ;; writing data
