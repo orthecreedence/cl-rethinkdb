@@ -26,6 +26,7 @@
    either a StreamSelect or SingleSelect object."
   (is-term (list +term-term-type-table+
                  +term-term-type-get+
+                 +term-term-type-var+
                  +term-term-type-get-all+
                  +term-term-type-between+
                  +term-term-type-filter+)
@@ -58,6 +59,7 @@
                      +term-term-type-outer-join+
                      +term-term-type-eq-join+
                      +term-term-type-zip+
+                     +term-term-type-var+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)
@@ -180,6 +182,7 @@
       (is-boolean object)
       (is-term (list +term-term-type-default+
                      +term-term-type-match+
+                     +term-term-type-var+
                      +term-term-type-coerce-to+)
                object)))
 
