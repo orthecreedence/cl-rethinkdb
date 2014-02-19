@@ -10,7 +10,7 @@
   (let ((datum (make-instance 'datum))
         (datum-type nil)
         (datum-accessor nil))
-    (unless null-datum
+    (unless (or null-datum (null value))
       (cond ((typep value 'string)
              (setf value (pb:string-field value)
                    datum-type +datum-datum-type-r-str+

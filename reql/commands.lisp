@@ -15,7 +15,8 @@
            (term-object optargs)))
         ((and (or (listp object)
                   (vectorp object))
-              (not (stringp object)))
+              (not (stringp object))
+              (not (null object)))
          (term-array object))
         (t
          (term-from-datum (create-datum object)))))
