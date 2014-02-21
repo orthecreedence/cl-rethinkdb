@@ -533,7 +533,8 @@
   (assert-fn-args function-map 1)
   (assert-fn-args function-reduce 2)
   (create-term +term-term-type-grouped-map-reduce+
-               (list (wrap-in-term function-group)
+               (list (wrap-in-term sequence)
+                     (wrap-in-term function-group)
                      (wrap-in-term function-map)
                      (wrap-in-term function-reduce))))
 
