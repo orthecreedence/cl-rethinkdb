@@ -496,14 +496,18 @@
 ;; -----------------------------------------------------------------------------
 ;; aggregation
 ;; -----------------------------------------------------------------------------
-(defcommand reduce (sequence reql-function)
+(defcommand reduce (sequence reql-function &key base)
   "Perform a reduce on sequence using the given REQL function."
   (assert (is-sequence sequence))
   (assert (is-function reql-function))
+  (assert (is-datum base))
   (assert-fn-args reql-function 2)
-  (create-term +term-term-type-reduce+
-               (list (wrap-in-term sequence)
-                     (wrap-in-term reql-function))))
+  (let ((options nil))
+    (when base (push (cons "base" base) options))
+    (create-term +term-term-type-reduce+
+                 (list (wrap-in-term sequence)
+                       (wrap-in-term reql-function))
+                 options)))
 
 (defcommand count (sequence &optional datum/reql-function)
   "Counts the items in a sequence."

@@ -360,7 +360,7 @@ For a better understanding of the return types of the following commands, see
 - `is-empty (sequence) => boolean`
 - `union (sequence &rest sequences) => sequence`
 - `sample (sequence count) => sequence`
-- `reduce (sequence function) => object`
+- `reduce (sequence function &key base) => object`
 - `count (sequence &optional object/reql-function) => number`
 - `distinct (sequence) => sequence`
 - `grouped-map-reduce (sequence function-group function-map function-reduce) => sequence`
