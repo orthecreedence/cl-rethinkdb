@@ -61,7 +61,7 @@
 ;; manipulating tables
 ;; TODO: figure out a way to omit database arg (may have to write separate functions)
 ;; -----------------------------------------------------------------------------
-(defcommand table-create (database table-name &key datacenter primary-key cache-size durability)
+(defcommand table-create (database table-name &key datacenter primary-key durability)
   "Create a table in the given database, optionally specifying the datacenter,
    primary key of the table (default 'id') and table cache size."
   (assert (is-term +term-term-type-db+ database))
@@ -70,14 +70,11 @@
               (is-string datacenter)))
   (assert (or (null primary-key)
               (is-string primary-key)))
-  (assert (or (null cache-size)
-              (is-number cache-size)))
   (assert (or (null durability)
               (is-string durability)))
   (let ((options nil))
     (when datacenter (push (cons "datacanter" datacenter) options))
     (when primary-key (push (cons "primary_key" primary-key) options))
-    (when cache-size (push (cons "cache_size" cache-size) options))
     (when durability (push (cons "durability" durability) options))
     (create-term +term-term-type-table-create+
                  (list (wrap-in-term database)
@@ -496,14 +493,40 @@
 ;; -----------------------------------------------------------------------------
 ;; aggregation
 ;; -----------------------------------------------------------------------------
-(defcommand reduce (sequence reql-function &key base)
+;defcommand group (sequence field-or-function
+(defmacro define-aggregate-command (name docstring &optional takes-index)
+  "Makes it super easy to define aggregate commands, since a number of them have
+   the same definition."
+  `(defcommand ,name ,(append '(sequence field-or-function)
+                              (when takes-index '(&key index)))
+     ,docstring
+     (assert (is-sequence sequence))
+     (assert (or (is-string field-or-function)
+                 (and (is-function field-or-function)
+                      (= (num-args field-or-function) 1))))
+     ,(when takes-index
+        '(assert (or (null index)
+                     (stringp index))))
+     (create-term ',(intern (string-upcase (format nil "+term-term-type-~a+" name)))
+                  (list (wrap-in-term 
+
+(defun test()
+(as:with-event-loop (:catch-app-errors t)
+  (asf:future-handler-case
+    (asf:alet* ((sock (r:connect "127.0.0.1" 28015 :db "turtl"))
+                (qry (r:r (:object "name" "andrew" "city" "sf")))
+                (res (r:run sock qry)))
+      (format t "res: ~s~%" (alexandria:hash-table-alist res))
+      (r:disconnect sock))
+    (t (e) (format t "err: ~a~%" e))))
+)
+
+(defcommand reduce (sequence reql-function)
   "Perform a reduce on sequence using the given REQL function."
   (assert (is-sequence sequence))
   (assert (is-function reql-function))
-  (assert (is-datum base))
   (assert-fn-args reql-function 2)
   (let ((options nil))
-    (when base (push (cons "base" base) options))
     (create-term +term-term-type-reduce+
                  (list (wrap-in-term sequence)
                        (wrap-in-term reql-function))
@@ -527,35 +550,6 @@
   (create-term +term-term-type-distinct+
                (list (wrap-in-term sequence))))
 
-(defcommand grouped-map-reduce (sequence function-group function-map function-reduce)
-  "Partition a sequence into groups then perform map/reduce on those groups."
-  (assert (is-sequence sequence))
-  (assert (is-function function-group))
-  (assert (is-function function-map))
-  (assert (is-function function-reduce))
-  (assert-fn-args function-group 1)
-  (assert-fn-args function-map 1)
-  (assert-fn-args function-reduce 2)
-  (create-term +term-term-type-grouped-map-reduce+
-               (list (wrap-in-term sequence)
-                     (wrap-in-term function-group)
-                     (wrap-in-term function-map)
-                     (wrap-in-term function-reduce))))
-
-(defcommand group-by (sequence &rest fields-then-reduction)
-  "Group elements in a sequence by the values of the given fields and the
-   reduction function (always the last value)."
-  (let ((reduce-fn (car (last fields-then-reduction)))
-        (fields (butlast fields-then-reduction)))
-    (assert (is-sequence sequence))
-    (dolist (field fields)
-      (assert (stringp field)))
-    (assert (is-function reduce-fn))
-    (create-term +term-term-type-groupby+
-                 (list (wrap-in-term sequence)
-                       (term-array fields)
-                       (wrap-in-term reduce-fn)))))
-
 (defcommand contains (sequence datum-or-fn)
   "Returns whether or not a sequence contains all given values."
   (assert (is-sequence sequence))
@@ -565,21 +559,6 @@
   (create-term +term-term-type-contains+
                (cl:append (list (wrap-in-term sequence)
                                 (wrap-in-term datum-or-fn)))))
-
-;; -----------------------------------------------------------------------------
-;; reductions
-;; -----------------------------------------------------------------------------
-(defcommand count-reduce ()
-  "A count reduction object."
-  (term-object '(("COUNT" . t))))
-
-(defcommand sum-reduce (field)
-  "Sum a field as a reduction."
-  (term-object `(("SUM" . ,field))))
-
-(defcommand avg-reduce (field)
-  "Average a field as a reduction."
-  (term-object `(("AVG" . ,field))))
 
 ;; -----------------------------------------------------------------------------
 ;; document manipulation
@@ -756,6 +735,17 @@
   (assert (is-object object))
   (create-term +term-term-type-keys+ (list object)))
 
+(defcommand object (key val &rest args)
+  "Create a RDB object from key/value pairs (presented as flat arguments):
+     (object \"name\" \"andrew\" \"location\" \"sf\" ...)"
+  (push val args)
+  (push key args)
+  (loop for (key val) on args by #'cddr do
+    (assert (is-string key))
+    (assert (is-datum val)))
+  (create-term +term-term-type-object+
+               (loop for x in args collect (wrap-in-term x))))
+
 ;; -----------------------------------------------------------------------------
 ;; math and logic
 ;; -----------------------------------------------------------------------------
@@ -892,6 +882,28 @@
   (create-term +term-term-type-match+
                (list (wrap-in-term string)
                      (wrap-in-term string-regex))))
+
+(defcommand split (string &optional separator max-splits)
+  "Split a string. If no separator given, split on whitespace."
+  (assert (is-string string))
+  (assert (or (null separator)
+              (is-string separator)))
+  (assert (or (null max-splits)
+              (is-number max-splits)))
+  (create-term +term-term-type-split+
+               (cl:append (list (wrap-in-term string))
+                          (when separator (list (wrap-in-term separator)))
+                          (when max-splits (list (wrap-in-term max-splits))))))
+
+(defcommand upcase (string)
+  "Upcase a string."
+  (assert (is-string string))
+  (create-term +term-term-type-upcase+ (list (wrap-in-term string))))
+
+(defcommand downcase (string)
+  "Downcase a string."
+  (assert (is-string string))
+  (create-term +term-term-type-downcase+ (list (wrap-in-term string))))
 
 ;; -----------------------------------------------------------------------------
 ;; control structures

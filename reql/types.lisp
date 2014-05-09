@@ -54,7 +54,11 @@
                      +term-term-type-orderby+
                      +term-term-type-distinct+
                      +term-term-type-union+
-                     +term-term-type-grouped-map-reduce+
+                     +term-term-type-group+
+                     +term-term-type-sum+
+                     +term-term-type-avg+
+                     +term-term-type-min+
+                     +term-term-type-max+
                      +term-term-type-inner-join+
                      +term-term-type-outer-join+
                      +term-term-type-eq-join+
@@ -79,6 +83,7 @@
                      +term-term-type-set-intersection+
                      +term-term-type-set-union+
                      +term-term-type-set-difference+
+                     +term-term-type-ungroup+
                      +term-term-type-insert-at+
                      +term-term-type-splice-at+
                      +term-term-type-delete-at+
@@ -155,7 +160,9 @@
                      +term-term-type-var+
                      +term-term-type-get-field+
                      +term-term-type-funcall+
-                     +term-term-type-branch+)
+                     +term-term-type-branch+
+                     +term-term-type-upcase+
+                     +term-term-type-downcase+)
                object)))
 
 (defun is-number (object)
