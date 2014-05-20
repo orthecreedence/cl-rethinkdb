@@ -159,6 +159,7 @@
       (is-term (list +term-term-type-add+
                      +term-term-type-var+
                      +term-term-type-get-field+
+                     +term-term-type-default+
                      +term-term-type-funcall+
                      +term-term-type-branch+
                      +term-term-type-upcase+
@@ -177,6 +178,7 @@
                      +term-term-type-get-field+
                      +term-term-type-count+
                      +term-term-type-var+
+                     +term-term-type-default+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)))
