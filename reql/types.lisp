@@ -49,12 +49,14 @@
                      +term-term-type-sample+
                      +term-term-type-merge+
                      +term-term-type-map+
+                     +term-term-type-reduce+
                      +term-term-type-filter+
                      +term-term-type-concatmap+
                      +term-term-type-orderby+
                      +term-term-type-distinct+
                      +term-term-type-union+
                      +term-term-type-group+
+                     +term-term-type-ungroup+
                      +term-term-type-sum+
                      +term-term-type-avg+
                      +term-term-type-min+
@@ -84,6 +86,7 @@
                      +term-term-type-set-union+
                      +term-term-type-set-difference+
                      +term-term-type-ungroup+
+                     +term-term-type-reduce+
                      +term-term-type-insert-at+
                      +term-term-type-splice-at+
                      +term-term-type-delete-at+
@@ -114,6 +117,7 @@
                      +term-term-type-any+
                      +term-term-type-all+
                      +term-term-type-var+
+                     +term-term-type-reduce+
                      +term-term-type-funcall+
                      +term-term-type-default+
                      +term-term-type-branch+)
@@ -162,6 +166,7 @@
                      +term-term-type-default+
                      +term-term-type-funcall+
                      +term-term-type-branch+
+                     +term-term-type-reduce+
                      +term-term-type-upcase+
                      +term-term-type-downcase+)
                object)))
@@ -176,8 +181,13 @@
                      +term-term-type-div+
                      +term-term-type-mod+
                      +term-term-type-get-field+
+                     +term-term-type-reduce+
                      +term-term-type-count+
                      +term-term-type-var+
+                     +term-term-type-sum+
+                     +term-term-type-avg+
+                     +term-term-type-min+
+                     +term-term-type-max+
                      +term-term-type-default+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
@@ -192,6 +202,7 @@
       (is-term (list +term-term-type-default+
                      +term-term-type-match+
                      +term-term-type-var+
+                     +term-term-type-reduce+
                      +term-term-type-coerce-to+)
                object)))
 

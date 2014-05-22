@@ -15,6 +15,8 @@
            #:union
            #:reduce
            #:count
+           #:min
+           #:max
            #:merge
            #:append
            #:set-difference

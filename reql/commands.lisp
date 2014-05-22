@@ -140,7 +140,7 @@
     (assert (is-string name)))
   (create-term +term-term-type-index-status+
                (cl:append (list (wrap-in-term table))
-                          (loop for name in names collect (wrap-in-term name)))))
+                          (mapcar 'wrap-in-term names))))
 
 (defcommand index-wait (table &rest names)
   "Wait for the specified index to be ready (or all indexes if no name
@@ -150,7 +150,7 @@
     (assert (is-string name)))
   (create-term +term-term-type-index-wait+
                (cl:append (list (wrap-in-term table))
-                          (loop for name in names collect (wrap-in-term name)))))
+                          (mapcar 'wrap-in-term names))))
 
 ;; -----------------------------------------------------------------------------
 ;; writing data
@@ -279,7 +279,7 @@
       (when index (push (cons "index" index) options))
       (create-term +term-term-type-get-all+
                    (cl:append (list (wrap-in-term table))
-                              (loop for k in keys collect (wrap-in-term k)))
+                              (mapcar 'wrap-in-term keys))
                    options))))
 
 (defcommand between (select left right &key index left-bound right-bound)
@@ -389,7 +389,7 @@
     (assert (is-path path)))
   (create-term +term-term-type-with-fields+
                (cl:append (list sequence)
-                          (loop for p in paths collect (wrap-in-term p)))))
+                          (mapcar 'wrap-in-term paths))))
 
 (defcommand concat-map (sequence reql-function)
   "Construct a sequence of all elements returned by the given mapping function."
@@ -408,8 +408,7 @@
     (assert (is-order field)))
   (create-term +term-term-type-orderby+
                (cl:append (list (wrap-in-term sequence))
-                          (loop for f in fields
-                                collect (wrap-in-term f)))))
+                          (mapcar 'wrap-in-term fields))))
 
 (defcommand asc (field)
   "Used in order-by queries to specify a field is ascending in order."
@@ -478,8 +477,7 @@
   (dolist (seq sequences)
     (assert (is-sequence seq)))
   (create-term +term-term-type-union+
-               (loop for s in sequences
-                     collect (wrap-in-term s))))
+               (mapcar 'wrap-in-term sequences)))
 
 (defcommand sample (sequence count)
   "Select a number of elements from the given sequence with uniform
@@ -493,22 +491,6 @@
 ;; -----------------------------------------------------------------------------
 ;; aggregation
 ;; -----------------------------------------------------------------------------
-;defcommand group (sequence field-or-function
-(defmacro define-aggregate-command (name docstring &optional takes-index)
-  "Makes it super easy to define aggregate commands, since a number of them have
-   the same definition."
-  `(defcommand ,name ,(append '(sequence field-or-function)
-                              (when takes-index '(&key index)))
-     ,docstring
-     (assert (is-sequence sequence))
-     (assert (or (is-string field-or-function)
-                 (and (is-function field-or-function)
-                      (= (num-args field-or-function) 1))))
-     ,(when takes-index
-        '(assert (or (null index)
-                     (stringp index))))
-     (create-term ',(intern (string-upcase (format nil "+term-term-type-~a+" name)))
-                  (list (wrap-in-term 
 
 (defun test()
 (as:with-event-loop (:catch-app-errors t)
@@ -520,6 +502,29 @@
       (r:disconnect sock))
     (t (e) (format t "err: ~a~%" e))))
 )
+
+(defcommand group (sequence fields-or-functions &key index)
+  "Group a sequence by a set of fields or grouping functions."
+  (assert (is-sequence sequence))
+  (dolist (fof fields-or-functions)
+    (assert (or (is-string fof)
+                (is-function fof))))
+  (assert (or (null index)
+              (stringp index)))
+  (let ((options nil))
+    (when index (push (cons "index" index) options))
+    (create-term +term-term-type-group+
+                 (cl:append (list (wrap-in-term sequence))
+                            (mapcar 'wrap-in-term fields-or-functions))
+                 options)))
+
+(defcommand ungroup (grouped-stream)
+  "Ungroup a grouped stream."
+  (assert (or (is-select grouped-stream)
+              (is-array grouped-stream)
+              (is-sequence grouped-stream)))
+  (create-term +term-term-type-ungroup+
+               (list (wrap-in-term grouped-stream))))
 
 (defcommand reduce (sequence reql-function)
   "Perform a reduce on sequence using the given REQL function."
@@ -543,6 +548,24 @@
                (cl:append (list (wrap-in-term sequence))
                           (when datum/reql-function
                             (list (wrap-in-term datum/reql-function))))))
+
+(defmacro define-aggregate-command (name docstring)
+  "Makes it super easy to define aggregate commands, since a number of them have
+   the same definition."
+  `(defcommand ,name (sequence field-or-function)
+     ,docstring
+     (assert (is-sequence sequence))
+     (assert (or (is-string field-or-function)
+                 (and (is-function field-or-function)
+                      (= (num-args field-or-function) 1))))
+     (create-term ',(intern (string-upcase (format nil "+term-term-type-~a+" name)) :cl-rethinkdb-proto)
+                  (list (wrap-in-term sequence)
+                        (wrap-in-term field-or-function)))))
+
+(define-aggregate-command sum "Sum the elements of a sequence.")
+(define-aggregate-command avg "Average the elements in a sequence.")
+(define-aggregate-command min "Find the minimum of a sequence.")
+(define-aggregate-command max "Find the maximum of a sequence.")
 
 (defcommand distinct (sequence)
   "Get all the distinct elements in a sequence (ie remove-duplicates)."
@@ -602,8 +625,7 @@
     (assert (is-path path)))
   (create-term +term-term-type-pluck+
                (cl:append (list (wrap-in-term sequence/object))
-                          (loop for p in paths
-                                collect (wrap-in-term p)))))
+                          (mapcar 'wrap-in-term paths))))
 
 (defcommand without (sequence/object path &rest paths)
   "Given a sequence or object, return a sequence or object without the given
@@ -615,8 +637,7 @@
     (assert (is-path path)))
   (create-term +term-term-type-without+
                (cl:append (list (wrap-in-term sequence/object))
-                          (loop for p in paths
-                                collect (wrap-in-term p)))))
+                          (mapcar 'wrap-in-term paths))))
 
 (defcommand merge (object &rest objects)
   "Merge objects together (merge their fields into one object)."
@@ -624,8 +645,7 @@
   (dolist (object objects)
     (assert (is-object object)))
   (create-term +term-term-type-merge+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand append (array object)
   "Append an object to the end of an array."
@@ -690,7 +710,7 @@
     (assert (is-path path)))
   (create-term +term-term-type-has-fields+
                (cl:append (list object)
-                          (loop for p in paths collect (wrap-in-term p)))))
+                          (mapcar 'wrap-in-term paths))))
 
 (defcommand insert-at (array index datum)
   "Insert the given object into the array at the specified index."
@@ -744,7 +764,7 @@
     (assert (is-string key))
     (assert (is-datum val)))
   (create-term +term-term-type-object+
-               (loop for x in args collect (wrap-in-term x))))
+               (mapcar 'wrap-in-term args)))
 
 ;; -----------------------------------------------------------------------------
 ;; math and logic
@@ -756,8 +776,7 @@
     (assert (or (is-number number/string)
                 (is-string number/string))))
   (create-term +term-term-type-add+
-               (loop for ns in numbers/strings
-                     collect (wrap-in-term ns))))
+               (mapcar 'wrap-in-term numbers/strings)))
 
 (defcommand - (number &rest numbers)
   "Subtract a set of numbers."
@@ -765,8 +784,7 @@
   (dolist (number numbers)
     (assert (is-number number)))
   (create-term +term-term-type-sub+
-               (loop for n in numbers
-                     collect (wrap-in-term n))))
+               (mapcar 'wrap-in-term numbers)))
 
 (defcommand * (number &rest numbers)
   "Multiply a set of numbers."
@@ -774,8 +792,7 @@
   (dolist (number numbers)
     (assert (is-number number)))
   (create-term +term-term-type-mul+
-               (loop for n in numbers
-                     collect (wrap-in-term n))))
+               (mapcar 'wrap-in-term numbers)))
 
 (defcommand / (number &rest numbers)
   "Divide a set of numbers."
@@ -783,8 +800,7 @@
   (dolist (number numbers)
     (assert (is-number number)))
   (create-term +term-term-type-div+
-               (loop for n in numbers
-                     collect (wrap-in-term n))))
+               (mapcar 'wrap-in-term numbers)))
 
 (defcommand % (number mod)
   "Modulus a number by another."
@@ -800,8 +816,7 @@
   (dolist (bool booleans)
     (assert (is-boolean bool)))
   (create-term +term-term-type-all+
-               (loop for b in booleans
-                     collect (wrap-in-term b))))
+               (mapcar 'wrap-in-term booleans)))
 
 (defcommand || (boolean &rest booleans)
   "Logical or a set of booleans."
@@ -809,8 +824,7 @@
   (dolist (bool booleans)
     (assert (is-boolean bool)))
   (create-term +term-term-type-any+
-               (loop for b in booleans
-                     collect (wrap-in-term b))))
+               (mapcar 'wrap-in-term booleans)))
 
 (defcommand == (object &rest objects)
   "Determine equality of a number of objects."
@@ -818,8 +832,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-eq+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand != (object &rest objects)
   "Determine inequality of a number of objects."
@@ -827,8 +840,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-ne+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand < (object &rest objects)
   "Determine if objects are less than each other."
@@ -836,8 +848,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-lt+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand <= (object &rest objects)
   "Determine if objects are less than/equal to each other."
@@ -845,8 +856,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-le+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand > (object &rest objects)
   "Determine if objects are greater than each other."
@@ -854,8 +864,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-gt+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand >= (object &rest objects)
   "Determine if objects are greater than/equal to each other."
@@ -863,8 +872,7 @@
   (dolist (object objects)
     (assert (is-datum object)))
   (create-term +term-term-type-ge+
-               (loop for o in objects
-                     collect (wrap-in-term o))))
+               (mapcar 'wrap-in-term objects)))
 
 (defcommand ~ (boolean)
   "Logical not a boolean value."
@@ -914,7 +922,7 @@
   (assert-fn-args function (length args))
   (create-term +term-term-type-funcall+
                (cl:append (list (wrap-in-term function))
-                          (loop for a in args collect (wrap-in-term a)))))
+                          (mapcar 'wrap-in-term args))))
 
 (defcommand branch (bool true-expr false-expr)
   "Given a form that evaluates to a boolean, run the true-expr if it results in
