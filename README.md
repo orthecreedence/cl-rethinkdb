@@ -322,7 +322,7 @@ For a better understanding of the return types of the following commands, see
 - `db (db-name) => database`
 - `db-drop (db-name) => object`
 - `db-list () => object`
-- `table-create (db table-name &key datacenter primary-key cache-size durability) => object`
+- `table-create (db table-name &key datacenter primary-key durability) => object`
 - `table-drop (db table-name) => object`
 - `table-list (db) => object`
 - `sync (table) => object`
@@ -360,11 +360,15 @@ For a better understanding of the return types of the following commands, see
 - `is-empty (sequence) => boolean`
 - `union (sequence &rest sequences) => sequence`
 - `sample (sequence count) => sequence`
-- `reduce (sequence function &key base) => object`
+- `group` (sequence fields-or-functions &key index) => grouped\_sequence
+- `ungroup (grouped-sequence) => sequence`
+- `reduce (sequence function) => object`
 - `count (sequence &optional object/reql-function) => number`
+- `sum (sequence field-or-function) => number`
+- `avg (sequence field-or-function) => number`
+- `min (sequence field-or-function) => number`
+- `max (sequence field-or-function) => number`
 - `distinct (sequence) => sequence`
-- `grouped-map-reduce (sequence function-group function-map function-reduce) => sequence`
-- `group-by (sequence &rest fields-then-reduction) => sequence`
 - `contains (sequence object) => boolean`
 - `count-reduce () => function`
 - `sum-reduce (field) => function`
@@ -387,6 +391,7 @@ For a better understanding of the return types of the following commands, see
 - `delete-at (array index) => array`
 - `change-at (array index object) => array`
 - `keys (object) => array`
+- `object (key val &rest) => object`
 - `\+ (number/string &rest numbers/strings) => number/string`
 - `\- (number &rest numbers) => number`
 - `\* (number &rest numbers) => number`
@@ -402,6 +407,9 @@ For a better understanding of the return types of the following commands, see
 - `>= (object &rest objects) => boolean`
 - `~ (boolean) => boolean`
 - `match (string string-regex) => object`
+- `split (string &optional separator max-splits) => array`
+- `upcase (string) => string`
+- `downcase (string) => string`
 - `do (function &rest args) => object`
 - `branch (boolean true-expr false-expr) => object`
 - `foreach (sequence function) => object`
