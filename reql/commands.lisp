@@ -914,6 +914,13 @@
   (create-term +term-term-type-downcase+ (list (wrap-in-term string))))
 
 ;; -----------------------------------------------------------------------------
+;; dates/times
+;; -----------------------------------------------------------------------------
+(defcommand now ()
+  "Return a time object representing the current time (UTC)."
+  (create-term +term-term-type-now+))
+
+;; -----------------------------------------------------------------------------
 ;; control structures
 ;; -----------------------------------------------------------------------------
 (defcommand do (function &rest args)
