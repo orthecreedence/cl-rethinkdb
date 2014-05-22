@@ -916,9 +916,97 @@
 ;; -----------------------------------------------------------------------------
 ;; dates/times
 ;; -----------------------------------------------------------------------------
+(defmacro define-simple-time-command (name docstring)
+  "Defines a command that takes one time object as its argument."
+  `(defcommand ,name (time)
+     ,docstring
+     (assert (is-time time))
+     (create-term ,(intern (string-upcase (format nil "+term-term-type-~a+" name)) :cl-rethinkdb-proto)
+                  (list (wrap-in-term time)))))
+
 (defcommand now ()
   "Return a time object representing the current time (UTC)."
   (create-term +term-term-type-now+))
+
+(defcommand time (timezone year month day &optional hour minute second)
+  "Create a new time object witht he given values."
+  (assert (or (null timezone)
+              (is-string timezone)))
+  (assert (is-number year))
+  (assert (is-number month))
+  (assert (is-number day))
+  (assert (or (and (null hour)
+                   (null minute)
+                   (null second))
+              (and (is-number hour)
+                   (is-number minute)
+                   (is-number second))))
+  (create-term +term-term-type-time+
+               (list (cl:append (list (wrap-in-term year)
+                                      (wrap-in-term month)
+                                      (wrap-in-term day))
+                                (when hour
+                                  (list (wrap-in-term hour)
+                                        (wrap-in-term minute)
+                                        (wrap-in-term second)))
+                                (when timezone
+                                  (list (wrap-in-term timezone)))))))
+
+(defcommand epoch-time (timestamp)
+  "Create a time object form a timestamp."
+  (assert (is-number timestamp))
+  (create-term +term-term-type-epoch-time+
+               (list (wrap-in-term timestamp))))
+
+(defcommand iso8601 (date &key timezone)
+  "Create a time object from an ISO date string (and optionally a timezone)."
+  (assert (is-string date))
+  (assert (or (null timezone)
+              (is-string timezone)))
+  (let ((options nil))
+    (when timezone (push (cons "default_timezone" timezone) options))
+    (create-term +term-term-type-iso8601+
+                 (list (wrap-in-term date))
+                 options)))
+
+(defcommand in-timezone (time timezone)
+  "Return a new time object with a different timezone than the given one."
+  (assert (is-time time))
+  (assert (is-string timezone))
+  (create-term +term-term-type-in-timezone+
+               (mapcar 'wrap-in-term (list time timezone))))
+
+(define-simple-time-command timezone "Get a time's timezone (string).")
+
+(defcommand during (time start end)
+  "Determine if a time lies withthin the given start/end times."
+  (assert (is-time time))
+  (assert (is-time start))
+  (assert (is-time end))
+  (create-term +term-term-type-during+
+               (mapcar 'wrap-in-term (list time start end))))
+
+(define-simple-time-command date 
+  "Create a new time object fom the given with only y/m/d filled out.")
+
+(define-simple-time-command time-of-day
+  "Return the number of seconds elapsed since the beginning of the day stored in
+   the time object.")
+
+(define-simple-time-command year "Get a time object's year.")
+(define-simple-time-command month "Get a time object's month.")
+(define-simple-time-command day "Get a time object's day of month.")
+(define-simple-time-command day-of-week "Get a time object's day of week.")
+(define-simple-time-command day-of-year "Get a time object's day of year.")
+(define-simple-time-command hours "Get a time object's hours")
+(define-simple-time-command minutes "Get a time object's minutes")
+(define-simple-time-command seconds "Get a time object's seconds")
+
+(define-simple-time-command to-iso8601
+  "Return an ISO string of the given time object.")
+
+(define-simple-time-command to-epoch-time
+  "Return a unix timestamp for the given time object.")
 
 ;; -----------------------------------------------------------------------------
 ;; control structures

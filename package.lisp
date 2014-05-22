@@ -28,6 +28,7 @@
            #:>=
            #:<
            #:<=
+           #:time
            #:do
            #:error)
   ;; only export our DSL functions

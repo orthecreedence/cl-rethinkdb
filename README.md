@@ -4,8 +4,9 @@ This is an async [RethinkDB](http://www.rethinkdb.com/) driver for *everyone's*
 favorite programming language. It does its best to follow the [query language
 specification](http://www.rethinkdb.com/api/#js).
 
-*This driver is up to date with RethinkDB's v1.11 protocol.* __Exception:__ date
-support is not yet included in this driver.
+*This driver is up to date with RethinkDB's v1.12.x protocol.* Dates are now
+fully supported (although not as tested as the rest of the functionality, so
+please don't be shy to open issues).
 
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
 and makes heavy use of [cl-async's futures](http://orthecreedence.github.io/cl-async/future).
@@ -410,6 +411,25 @@ For a better understanding of the return types of the following commands, see
 - `split (string &optional separator max-splits) => array`
 - `upcase (string) => string`
 - `downcase (string) => string`
+- `now () => time`
+- `time (timezone year month day &optional hour minute second) => time`
+- `epoch-time (timestamp) => time`
+- `iso8601 (date &key timezone) => time`
+- `in-timezone (time timezone) => time`
+- `timezone (time) => string`
+- `during (time start end) => boolean`
+- `date (time) => time`
+- `time-of-day (time) => number`
+- `year (time) => number`
+- `month (time) => number`
+- `day (time) => number`
+- `day-of-week (time) => number`
+- `day-of-year (time) => number`
+- `hours (time) => number`
+- `minutes (time) => number`
+- `seconds (time) => number`
+- `to-iso8601 (time) => string`
+- `to-epoch-time (time) => number`
 - `do (function &rest args) => object`
 - `branch (boolean true-expr false-expr) => object`
 - `foreach (sequence function) => object`

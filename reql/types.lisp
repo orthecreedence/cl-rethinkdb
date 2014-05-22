@@ -122,7 +122,8 @@
                      +term-term-type-is-empty+
                      +term-term-type-has-fields+
                      +term-term-type-any+
-                     +term-term-type-all+)
+                     +term-term-type-all+
+                     +term-term-type-during+)
                object)))
 
 (defun is-object (object)
@@ -156,7 +157,9 @@
       (is-any object)
       (is-term (list +term-term-type-add+
                      +term-term-type-upcase+
-                     +term-term-type-downcase+)
+                     +term-term-type-downcase+
+                     +term-term-type-timezone+
+                     +term-term-type-to-iso8601+)
                object)))
 
 (defun is-number (object)
@@ -173,7 +176,16 @@
                      +term-term-type-sum+
                      +term-term-type-avg+
                      +term-term-type-min+
-                     +term-term-type-max+)
+                     +term-term-type-max+
+                     +term-term-type-year+
+                     +term-term-type-month+
+                     +term-term-type-day+
+                     +term-term-type-day-of-week+
+                     +term-term-type-day-of-year+
+                     +term-term-type-hours+
+                     +term-term-type-minutes+
+                     +term-term-type-seconds+
+                     +term-term-type-to-epoch-time+)
                object)))
 
 (defun is-datum (object)
@@ -197,7 +209,12 @@
 (defun is-time (object)
   "Test if we have a time value."
   (or (is-any object)
-      (is-term (list +term-term-type-time+)
+      (is-term (list +term-term-type-now+
+                     +term-term-type-time+
+                     +term-term-type-epoch-time+
+                     +term-term-type-iso8601+
+                     +term-term-type-in-timezone+
+                     +term-term-type-date+)
                object)))
 
 (deftype pkey () '(or real string))
