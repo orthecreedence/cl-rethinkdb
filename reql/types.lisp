@@ -170,6 +170,7 @@
                      +term-term-type-get-field+
                      +term-term-type-count+
                      +term-term-type-var+
+                     +term-term-type-default+
                      +term-term-type-funcall+
                      +term-term-type-branch+)
                object)))
