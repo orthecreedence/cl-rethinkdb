@@ -148,7 +148,8 @@
                      +term-term-type-table-drop+
                      +term-term-type-foreach+
                      +term-term-type-info+
-                     +term-term-type-literal+)
+                     +term-term-type-literal+
+                     +term-term-type-object+)
                object)))
 
 (defun is-string (object)
