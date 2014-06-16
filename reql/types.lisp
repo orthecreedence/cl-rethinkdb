@@ -33,7 +33,9 @@
                  +term-term-type-branch+
                  +term-term-type-default+
                  +term-term-type-coerce-to+
-                 +term-term-type-reduce+)
+                 +term-term-type-reduce+
+                 +term-term-type-max+
+                 +term-term-type-min+)
            object))
 
 (defun is-select (object)
@@ -71,10 +73,6 @@
                      +term-term-type-union+
                      +term-term-type-group+
                      +term-term-type-ungroup+
-                     +term-term-type-sum+
-                     +term-term-type-avg+
-                     +term-term-type-min+
-                     +term-term-type-max+
                      +term-term-type-inner-join+
                      +term-term-type-outer-join+
                      +term-term-type-eq-join+
@@ -176,8 +174,6 @@
                      +term-term-type-var+
                      +term-term-type-sum+
                      +term-term-type-avg+
-                     +term-term-type-min+
-                     +term-term-type-max+
                      +term-term-type-year+
                      +term-term-type-month+
                      +term-term-type-day+
