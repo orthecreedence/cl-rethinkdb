@@ -492,17 +492,6 @@
 ;; aggregation
 ;; -----------------------------------------------------------------------------
 
-(defun test()
-(as:with-event-loop (:catch-app-errors t)
-  (asf:future-handler-case
-    (asf:alet* ((sock (r:connect "127.0.0.1" 28015 :db "turtl"))
-                (qry (r:r (:object "name" "andrew" "city" "sf")))
-                (res (r:run sock qry)))
-      (format t "res: ~s~%" (alexandria:hash-table-alist res))
-      (r:disconnect sock))
-    (t (e) (format t "err: ~a~%" e))))
-)
-
 (defcommand group (sequence fields-or-functions &key index)
   "Group a sequence by a set of fields or grouping functions."
   (assert (is-sequence sequence))
@@ -558,7 +547,7 @@
      (assert (or (is-string field-or-function)
                  (and (is-function field-or-function)
                       (= (num-args field-or-function) 1))))
-     (create-term ',(intern (string-upcase (format nil "+term-term-type-~a+" name)) :cl-rethinkdb-proto)
+     (create-term ,(intern (string-upcase (format nil "+term-term-type-~a+" name)) :cl-rethinkdb-proto)
                   (list (wrap-in-term sequence)
                         (wrap-in-term field-or-function)))))
 
