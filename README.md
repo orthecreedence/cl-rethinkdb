@@ -365,10 +365,10 @@ For a better understanding of the return types of the following commands, see
 - `ungroup (grouped-sequence) => sequence`
 - `reduce (sequence function) => object`
 - `count (sequence &optional object/reql-function) => number`
-- `sum (sequence field-or-function) => number`
-- `avg (sequence field-or-function) => number`
-- `min (sequence field-or-function) => number`
-- `max (sequence field-or-function) => number`
+- `sum (sequence &optional field-or-function) => number`
+- `avg (sequence &optional field-or-function) => number`
+- `min (sequence &optional field-or-function) => number`
+- `max (sequence &optional field-or-function) => number`
 - `distinct (sequence) => sequence`
 - `contains (sequence object) => boolean`
 - `count-reduce () => function`

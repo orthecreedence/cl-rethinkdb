@@ -541,15 +541,17 @@
 (defmacro define-aggregate-command (name docstring)
   "Makes it super easy to define aggregate commands, since a number of them have
    the same definition."
-  `(defcommand ,name (sequence field-or-function)
+  `(defcommand ,name (sequence &optional field-or-function)
      ,docstring
      (assert (is-sequence sequence))
      (assert (or (is-string field-or-function)
+                 (null field-or-function)
                  (and (is-function field-or-function)
                       (= (num-args field-or-function) 1))))
      (create-term ,(intern (string-upcase (format nil "+term-term-type-~a+" name)) :cl-rethinkdb-proto)
-                  (list (wrap-in-term sequence)
-                        (wrap-in-term field-or-function)))))
+                  (cl:append (list (wrap-in-term sequence))
+                             (when field-or-function
+                               (list (wrap-in-term field-or-function)))))))
 
 (define-aggregate-command sum "Sum the elements of a sequence.")
 (define-aggregate-command avg "Average the elements in a sequence.")
