@@ -119,6 +119,7 @@
                      +term-term-type-contains+
                      +term-term-type-is-empty+
                      +term-term-type-has-fields+
+                     +term-term-type-match+
                      +term-term-type-any+
                      +term-term-type-all+
                      +term-term-type-during+)
