@@ -148,6 +148,7 @@
                      +term-term-type-foreach+
                      +term-term-type-info+
                      +term-term-type-literal+
+                     +term-term-type-match+
                      +term-term-type-object+)
                object)))
 
