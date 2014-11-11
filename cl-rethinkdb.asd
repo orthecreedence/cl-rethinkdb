@@ -3,7 +3,7 @@
   :license "MIT"
   :version "0.4.0.2"
   :description "A RethinkDB driver for Common Lisp"
-  :depends-on (#:protobuf #:cl-async-future #:cl-async)
+  :depends-on (#:protobuf #:cl-async-future #:cl-async #:flexi-streams)
   :components
   ((:file "util")
    (:file "package" :depends-on ("util"))

@@ -107,7 +107,7 @@
    calls) it returns the *full byte array of the response*, otherwise nil.
    
    Note that the response chunks MUST be passed in in the order received."
-  (let ((response-bytes (make-array 0 :element-type '(unsigned-byte 8)))
+  (let ((response-stream (flexi-streams:make-in-memory-output-stream :element-type '(unsigned-byte 8)))
         (response-size (the fixnum 0)))
     (lambda (bytes)
       ;; if we don't have a response size, grab it so we know when to return
@@ -120,9 +120,12 @@
             (setf (ldb (byte 8 (* i 8)) response-size) (aref bytes i)))
           ;; trim the response length (it's not part of the protobuf)
           (setf bytes (subseq bytes 4))))
-      (setf response-bytes (cl-async-util:append-array response-bytes bytes))
-      (when (<= response-size (length response-bytes))
-        response-bytes))))
+      (write-sequence bytes response-stream)
+      ;; can't rely on output-stream-sequence-length, so we do our own counting
+      (decf response-size (length bytes))
+      (when (<= response-size 0)
+        (let ((output (flexi-streams:get-output-stream-sequence response-stream)))
+          (coerce output '(simple-array (unsigned-byte 8) (*))))))))
 
 (defun parse-response (response &key query-form)
   "Parses a RethinkDB response (deserialized into protobuf classes) into a
