@@ -276,7 +276,9 @@ These mainly have to do with how you want data returned.
 When a sequence is returned from RethinkDB, it can be either returned as a list
 (if `*sequence-type*` is `:list` or as a vector (if `*sequence-type*` is
 `:array`). It's really a matter of preference on how you're going to access the
-data.
+data.  (But you may also want to read
+[on-sequence-type](https://gist.github.com/gtod/2f17dde3fc8eafc02058) for a
+warning about round tripping rethinkdb documents while using `:list`).
 
 Default: `:list`
 
