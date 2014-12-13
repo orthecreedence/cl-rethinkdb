@@ -1,12 +1,7 @@
-(defpackage :cl-rethinkdb-proto
-  (:use :protocol-buffer)
-  (:nicknames :rdp))
-
 (defpackage :cl-rethinkdb-reql
-  (:use :cl :cl-rethinkdb-util :cl-rethinkdb-proto)
+  (:use :cl :cl-rethinkdb-util)
   ;; steal some things from CL
-  (:shadow #:type
-
+  (:shadow #:make-array
            #:replace
            #:delete
            #:get
@@ -30,7 +25,9 @@
            #:<=
            #:time
            #:do
-           #:error)
+           #:error
+           #:random
+           #:fill)
   ;; only export our DSL functions
   (:export #:r
            #:fn)

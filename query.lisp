@@ -127,6 +127,7 @@
         (let ((output (flexi-streams:get-output-stream-sequence response-stream)))
           (coerce output '(simple-array (unsigned-byte 8) (*))))))))
 
+#|
 (defun parse-response (response &key query-form)
   "Parses a RethinkDB response (deserialized into protobuf classes) into a
    lispy/readable format.
@@ -135,23 +136,23 @@
    error, runtime error). If the query form is passed in via :query-form, will
    attach it to the thrown conditions, allowing closer inspection of the failed
    query."
-  (let* ((response-type (rdp:type response))
-         (token (rdp:token response))
+  (let* ((response-type (getf 'rdp:type response))
+         (token (getf 'rdp:token response))
          (cursor (get-cursor token))
          (future (cursor-future cursor))
          (value nil)
          (value-set-p nil)
-         (profile (rdp:profile response))
+         (profile (getf 'rdp:profile response))
          (profile (when profile
                     (cl-rethinkdb-reql::datum-to-lisp profile
                                                       :array-type *sequence-type*
                                                       :object-type *object-type*))))
     ;; by default cursor is finished
     (setf (cursor-state cursor) :finished)
-    (cond ((eq response-type rdp:+response-response-type-success-atom+)
+    (cond ((eq response-type +rdb-response-atom+)
            ;; we have an atom, pull it out for further processing
            (let* ((reql-val (aref (rdp:response response) 0)))
-             (if (eq (rdp:type reql-val) rdp:+datum-datum-type-r-array+)
+             (if (eq (rdp:type reql-val) +datum-type-array+)
                  ;; convert arrays into cursors
                  (setf (cursor-results cursor) (rdp:r-array reql-val)
                        value cursor
@@ -200,6 +201,7 @@
     (when (eq (cursor-state cursor) :finished)
       (remove-cursor cursor)))
   response)
+|#
 
 (defun connect (host port &key db use-outdated noreply profile (read-timeout 5))
   "Connect to a RethinkDB database, optionally specifying the database."
@@ -207,7 +209,7 @@
     (alet ((sock future))
       ;; write the version 32-bit integer, little-endian
       (let ((bytes (make-array 4 :element-type '(unsigned-byte 8)))
-            (ver cl-rethinkdb-proto:+version-dummy-version-v0-1+))
+            (ver +proto-version+))
         (dotimes (i 4)
           (setf (aref bytes i) (ldb (byte 8 (* i 8)) ver)))
         (as:write-socket-data sock bytes))
@@ -230,48 +232,35 @@
   "Disconnect a RethinkDB connection."
   (do-close sock))
 
-(defun serialize-protobuf (protobuf-query)
-  "Serialize a RethinkDB protocol buffer, as well as add in the version/size
-   bytes to the beginning of the array."
-  (let* ((size (pb:octet-size protobuf-query))
-         (num-extra-bytes 4)
-         (extra-bytes (make-array num-extra-bytes :element-type '(unsigned-byte 8)))
-         (buf (make-array size :element-type '(unsigned-byte 8))))
-    (pb:serialize protobuf-query buf 0 size)
-    ;; write the 32-bit query size
-    (dotimes (i 4)
-      (setf (aref extra-bytes i) (ldb (byte 8 (* i 8)) size)))
-    (cl-async-util:append-array extra-bytes buf)))
-
+(defun serialize-query (quer) )
 (defun run (sock query-form)
   "This function runs the given query, and returns a future that's finished when
    the query response comes in."
   (let* ((future (make-future))
          (token (generate-token))
-         (query (make-instance 'rdp:query))
+         (query nil)
          (cursor (make-instance 'cursor
                                 :token token
                                 :future future)))
-    (setf (rdp:type query) rdp:+query-query-type-start+
-          (rdp:query query) query-form)
-    ;; setup the global options
-    (let* ((options (socket-data sock))
-           (kv (conn-kv options)))
-      (dolist (opt kv)
-        (let ((assoc (make-instance 'rdp:query-assoc-pair)))
-          (setf (rdp:key assoc) (pb:string-field (car opt))
-                (rdp:val assoc) (cl-rethinkdb-reql::expr (cdr opt)))
-          (vector-push-extend assoc (rdp:global-optargs query)))))
-    ;; set the token into the query
-    (setf (rdp:token query) (the fixnum token))
+    ;(setf (rdp:type query) rdp:+query-query-type-start+
+    ;      (rdp:query query) query-form)
+    ;;; setup the global options
+    ;(let* ((options (socket-data sock))
+    ;       (kv (conn-kv options)))
+    ;  (dolist (opt kv)
+    ;    (let ((assoc (make-instance 'rdp:query-assoc-pair)))
+    ;      (setf (rdp:key assoc) (pb:string-field (car opt))
+    ;            (rdp:val assoc) (cl-rethinkdb-reql::expr (cdr opt)))
+    ;      (vector-push-extend assoc (rdp:global-optargs query)))))
+    ;;; set the token into the query
+    ;(setf (rdp:token query) (the fixnum token))
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
     (forward-errors (future)
       ;; serialize/send/parse the query
-      (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
-              (response (make-instance 'rdp:response))
+      (alet* ((response-bytes (do-send sock (serialize-query query)))
+              ;(response (make-instance 'rdp:response))
               (size (length response-bytes)))
-        (pb:merge-from-array response response-bytes 0 size)
         (handler-case
           (parse-response response :query-form query-form)
           (error (e)
@@ -286,14 +275,14 @@
          (cursor (make-instance 'cursor
                                 :token token
                                 :future future)))
-    (setf (rdp:type query) rdp:+query-query-type-noreply-wait+
-          (rdp:token query) (the fixnum token))
+    ;(setf (rdp:type query) rdp:+query-query-type-noreply-wait+
+    ;      (rdp:token query) (the fixnum token))
     (save-cursor token cursor)
     (forward-errors (future)
       (alet* ((response-bytes (do-send sock nil))
-              (response (make-instance 'rdp:response))
+              ;(response (make-instance 'rdp:response))
               (size (length response-bytes)))
-        (pb:merge-from-array response response-bytes 0 size)
+        ;(pb:merge-from-array response response-bytes 0 size)
         (handler-case
           (parse-response response)
           (error (e)
@@ -303,18 +292,18 @@
 (defun more (sock token)
   "Continue a query."
   (let ((future (make-future))
-        (query (make-instance 'rdp:query))
+        ;(query (make-instance 'rdp:query))
         (cursor (get-cursor token)))
-    (setf (rdp:token query) (the fixnum token)
-          (rdp:type query) rdp:+query-query-type-continue+
-          (cursor-future cursor) future)
+    ;(setf (rdp:token query) (the fixnum token)
+    ;      (rdp:type query) rdp:+query-query-type-continue+
+    ;      (cursor-future cursor) future)
     ;; save the query with the token so it can be looked up later
     (save-cursor token cursor)
     (forward-errors (future)
       (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
-              (response (make-instance 'rdp:response))
+              ;(response (make-instance 'rdp:response))
               (size (length response-bytes)))
-        (pb:merge-from-array response response-bytes 0 size)
+        ;(pb:merge-from-array response response-bytes 0 size)
         (handler-case
           (parse-response response)
           (error (e)
@@ -327,13 +316,13 @@
   (let ((future (make-future))
         (token (cursor-token cursor)))
     (if (eq (cursor-state cursor) :partial)
-        (let ((query (make-instance 'rdp:query)))
-          (setf (rdp:token query) (the fixnum token)
-                (rdp:type query) rdp:+query-query-type-stop+)
-          (forward-errors (future)
-            (wait-for (do-send sock (serialize-protobuf query))
-              (remove-cursor cursor)
-              (finish future))))
+        ;(let ((query (make-instance 'rdp:query)))
+        ;  (setf (rdp:token query) (the fixnum token)
+        ;        (rdp:type query) rdp:+query-query-type-stop+)
+        ;  (forward-errors (future)
+        ;    (wait-for (do-send sock (serialize-protobuf query))
+        ;      (remove-cursor cursor)
+        ;      (finish future))))
         (progn
           (remove-cursor cursor)
           (finish future)))

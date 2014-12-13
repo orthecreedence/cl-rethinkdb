@@ -18,12 +18,14 @@
   ;; collect all our commands (from defcommand) into a big ol' macrolet form
   ;; that converts keywords into the function equivalents
   (let ((macrolet-forms
-          (loop for c in *commands*
-                for k = (intern (symbol-name c) :keyword)
+          (loop for c being the hash-keys of *commands*
+                for k = (intern (cl-ppcre:regex-replace "-[0-9]$" (symbol-name c) "")
+                                :keyword)
                 collect `(,k (&rest args)
-                           `(,',c ,@args)))))
+                           `(call ,',k ,@args)))))
                 
-  `(progn
-     (macrolet (,@macrolet-forms)
-       ,@query-form))))
+    `(progn
+       (macrolet (,@(remove-duplicates macrolet-forms :test (lambda (x y)
+                                                              (eq (car x) (car y)))))
+         ,@query-form))))
 
