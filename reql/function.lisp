@@ -8,25 +8,6 @@
    know what I mean heh heh ;) ;) ;)."
   (incf *varnum*))
 
-(defun make-function (var-numbers body-term)
-  "Create a RQL function out of a list of variable numbers and a body term."
-  (create-term
-    +term-term-type-func+
-    (list (create-term
-            +term-term-type-make-array+
-            (loop for x in var-numbers collect (wrap-in-term x)))
-          body-term)))
-
-(defun var (number)
-  "Given a variable number, return the term referencing that variable."
-  (assert (realp number))
-  (create-term +term-term-type-var+ (list (wrap-in-term number))))
-
-(defun num-args (reql-function)
-  "Determine the number of arguments in a REQL function."
-  (when (is-term +term-term-type-func+ reql-function)
-    (length (args (aref (args reql-function) 0)))))
-
 (defmacro fn (args &body body)
   "Makes creating anonymous REQL functions easy. Takes a list of arguments (this
    is not a real lambda list, just a flat list of args) and wraps the body in
@@ -35,5 +16,5 @@
     `(symbol-macrolet (,@(loop for a in args
                                for n in arg-nums
                                collect (list a `(var ,n))))
-       (make-function ',arg-nums (wrap-in-term (r ,@body))))))
+       (func ',arg-nums (r ,@body)))))
 

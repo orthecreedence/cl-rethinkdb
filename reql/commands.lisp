@@ -22,19 +22,20 @@
                          (loop for x in args collect
                            (if (find x arrays)
                                x
-                               `(list ,x))))))
+                               `(list ,x)))))
+         (hash-sym (gensym "hash")))
     `(let ((fn (lambda ,lambda-list
-                 (let ((hash (hu:hash)))
+                 (let ((,hash-sym (hu:hash)))
                    ,@(loop for key in optargs
                            for jskey in optarg-keys
                            for default in optargs-processed collect
                        `(when ,(caddr default)
-                          (setf (gethash ,jskey hash) ,key)))
+                          (setf (gethash ,jskey ,hash-sym) ,key)))
                    (cl:append (list ,termval (or (cl:append ,@(funcall process-args)
                                                             ,(car restargs))
                                                  #()))
-                              (unless (zerop (hash-table-count hash))
-                                (list hash))))))
+                              (unless (zerop (hash-table-count ,hash-sym))
+                                (list ,hash-sym))))))
            (key ,(intern (format nil "~a-~a" (string-upcase (string name)) (length args)) :keyword)))
        (setf (gethash key *commands*) fn)
        ,(when defun
@@ -55,7 +56,11 @@
          (args (subseq all-args 0 keypos))
          (optargs (subseq all-args (cl:min (length all-args) keypos)))
          (op-key (intern (string-upcase (format nil "~a-~a" fn (length args))) :keyword))
-         (fn (gethash op-key *commands*)))
+         (op-key-def (intern (string-upcase (format nil "~a-0" fn)) :keyword))
+         (fn (gethash op-key *commands*))
+         (fn (if fn
+                 fn
+                 (gethash op-key-def *commands*))))
     (unless fn
       (error (format nil "command ~s (of ~a arguments) not found" op-key (length args))))
     (apply fn (cl:append args
@@ -68,7 +73,7 @@
 (defcommand (169 uuid) ())
 (defcommand (153 http) (url &key data timeout method params header attemps redirects verify page page-limit auth result-format))
 (defcommand (12 error) (errstr))
-(defcommand (13 var) ())
+(defcommand (13 implicit-var) ())
 
 (defcommand (14 db) (dbname))
 (defcommand (15 table) (tablename))
