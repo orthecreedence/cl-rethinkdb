@@ -3,9 +3,10 @@
   :license "MIT"
   :version "0.5.0"
   :description "A RethinkDB driver for Common Lisp"
-  :depends-on (#:cl-async-future
+  :depends-on (#:blackbird
                #:cl-async
-               #:flexi-streams
+               #:fast-io
+               #:yason
                #:cl-hash-util
                #:cl-ppcre)
   :components
@@ -16,7 +17,8 @@
    (:module reql
      :serial t
      :components
-     ((:file "function")
+     ((:file "types")
+      (:file "function")
       (:file "commands")
       (:file "dsl"))
      :depends-on ("config"))

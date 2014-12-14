@@ -34,7 +34,7 @@
   (:nicknames :reql))
 
 (defpackage :cl-rethinkdb
-  (:use :cl :cl-rethinkdb-util :cl-async-future :cl-rethinkdb-reql)
+  (:use :cl :cl-rethinkdb-util :blackbird :cl-rethinkdb-reql)
   (:export :*state*
            :state
            

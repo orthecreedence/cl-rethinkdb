@@ -1,15 +1,28 @@
 (defpackage :cl-rethinkdb-util
-  (:use :cl :cl-async-future)
-  (:export #:forward-errors
+  (:use :cl :blackbird)
+  (:export #:endian
+           #:unendian
+           #:forward-errors
            #:do-list/vector
-           #:do-hash/alist))
+           #:do-hash/alist
+           #:jprint))
 (in-package :cl-rethinkdb-util)
 
-(defmacro forward-errors ((future) body-form)
-  "Forward all errors encountered in a form to the given future."
-  `(future-handler-case
-     ,body-form
-     (t (e) (signal-error ,future e))))
+(defun endian (number num-bytes)
+  "Convert a number into N bytes little endian."
+  (let ((vec (make-array num-bytes :element-type '(unsigned-byte 8))))
+    (dotimes (i num-bytes)
+      (let ((val (logand number #xff)))
+        (setf (aref vec i) val)
+        (setf number (ash number -8))))
+    vec))
+
+(defun unendian (bytes num-bytes &key (offset 0))
+  "Turns N number of bytes at offset in bytes into an integer."
+  (let ((num 0))
+    (dotimes (i num-bytes)
+      (setf (ldb (byte 8 (* i 8)) num) (aref bytes (+ i offset))))
+    num))
 
 (defmacro do-list/vector ((bind-val list/vector) &body body)
   "Generifies looping over a list OR vector."
@@ -34,4 +47,9 @@
              (let ((,bind-key (car ,entry))
                    (,bind-val (cdr ,entry)))
                ,@body))))))
+
+(defun jprint (obj &optional (stream t))
+  (yason:encode obj stream)
+  (format stream "~%")
+  nil)
 

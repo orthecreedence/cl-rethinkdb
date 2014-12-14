@@ -3,6 +3,11 @@
 (defparameter *commands* (make-hash-table :test 'eq)
   "Holds name -> lambda mappings for our commands.")
 
+(defun cmd-arg (x)
+  (if (alistp x)
+      (alexandria:alist-hash-table x)
+      x))
+
 (defmacro defcommand ((termval name &key (defun t)) all-args &key docstr arrays)
   "Wraps creation of commands."
   (let* ((restpos (or (position '&rest all-args) (length all-args)))
@@ -21,8 +26,8 @@
          (process-args (lambda ()
                          (loop for x in args collect
                            (if (find x arrays)
-                               x
-                               `(list ,x)))))
+                               `(cmd-arg ,x)
+                               `(list (cmd-arg ,x))))))
          (hash-sym (gensym "hash")))
     `(let ((fn (lambda ,lambda-list
                  (let ((,hash-sym (hu:hash)))
@@ -32,7 +37,7 @@
                        `(when ,(caddr default)
                           (setf (gethash ,jskey ,hash-sym) ,key)))
                    (cl:append (list ,termval (or (cl:append ,@(funcall process-args)
-                                                            ,(car restargs))
+                                                            (cmd-arg ,(car restargs)))
                                                  #()))
                               (unless (zerop (hash-table-count ,hash-sym))
                                 (list ,hash-sym))))))
@@ -76,7 +81,8 @@
 (defcommand (13 implicit-var) ())
 
 (defcommand (14 db) (dbname))
-(defcommand (15 table) (tablename))
+(defcommand (15 table) (db tablename))
+(defcommand (15 table :defun nil) (tablename))
 (defcommand (16 get) (table id))
 (defcommand (78 get-all) (table ids &key index) :arrays (ids))
 (defcommand (17 ==) (&rest objects))

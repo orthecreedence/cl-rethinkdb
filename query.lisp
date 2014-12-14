@@ -3,6 +3,7 @@
 (define-condition query-error (simple-error)
   ((token :reader query-error-token :initarg :token :initform nil)
    (query :reader query-error-query :initarg :query :initform nil)
+   (backtrace :reader query-error-backtrace :initarg :backtrace :initform nil)
    (msg :reader query-error-msg :initarg :msg :initform ""))
   (:report (lambda (c s) (format s "Query failed (~a): ~a" (query-error-token c) (query-error-msg c))))
   (:documentation "A general query failure condition."))
@@ -107,267 +108,242 @@
    calls) it returns the *full byte array of the response*, otherwise nil.
    
    Note that the response chunks MUST be passed in in the order received."
-  (let ((response-stream (flexi-streams:make-in-memory-output-stream :element-type '(unsigned-byte 8)))
-        (response-size (the fixnum 0)))
+  (let ((token nil)
+        (response-buffer (fast-io:make-output-buffer))
+        (response-size nil))
     (lambda (bytes)
-      ;; if we don't have a response size, grab it so we know when to return
-      (when (zerop response-size)
-        ;; make sure we at least have the response size integer
-        (when (<= 4 (length bytes))
-          ;; convert the little-endian response size into an integer, stored in
-          ;; response-size
-          (dotimes (i 4)
-            (setf (ldb (byte 8 (* i 8)) response-size) (aref bytes i)))
-          ;; trim the response length (it's not part of the protobuf)
-          (setf bytes (subseq bytes 4))))
-      (write-sequence bytes response-stream)
-      ;; can't rely on output-stream-sequence-length, so we do our own counting
-      (decf response-size (length bytes))
-      (when (<= response-size 0)
-        (let ((output (flexi-streams:get-output-stream-sequence response-stream)))
-          (coerce output '(simple-array (unsigned-byte 8) (*))))))))
+      (let* ((bufsize (fast-io:buffer-position response-buffer))
+             (end (if response-size
+                      (- (+ response-size 4 8)
+                         bufsize)
+                      (length bytes)))
+             (end (min end (length bytes))))
+        (fast-io:fast-write-sequence bytes
+                                     response-buffer
+                                     0
+                                     end))
+      (when (and (not token)
+                 (<= 8 (fast-io:buffer-position response-buffer)))
+        (setf token (unendian (fast-io:finish-output-buffer response-buffer) 8)))
+      (when (and (not response-size)
+                 (<= 12 (fast-io:buffer-position response-buffer)))
+        (setf response-size (unendian (fast-io:finish-output-buffer response-buffer) 4 :offset 8)))
+      ;; calculate current size minus token/size bytes
+      (let ((cursize (- (fast-io:buffer-position response-buffer) (+ 4 8))))
+        (when (and response-size
+                   (<= response-size cursize))
+          (let ((output (fast-io:finish-output-buffer response-buffer)))
+            output))))))
 
-#|
-(defun parse-response (response &key query-form)
-  "Parses a RethinkDB response (deserialized into protobuf classes) into a
-   lispy/readable format.
-   
-   Also throws any errors encountered in the response (client error, compile
-   error, runtime error). If the query form is passed in via :query-form, will
-   attach it to the thrown conditions, allowing closer inspection of the failed
+(defun parse-response (response-bytes &key query-form)
+  "Given a full response byte array, parse it, find the attached cursor (by
+   token), and either resolve/reject the cursor's promise with the return of the
    query."
-  (let* ((response-type (getf 'rdp:type response))
-         (token (getf 'rdp:token response))
+  (let* ((token (unendian response-bytes 8))
+         (response (yason:parse (babel:octets-to-string (subseq response-bytes (+ 8 4)))
+                                :json-arrays-as-vectors t))
          (cursor (get-cursor token))
-         (future (cursor-future cursor))
-         (value nil)
+         (promise-data (cursor-future cursor))
+         (resolver (car promise-data))
+         (rejecter (cdr promise-data))
+         (response-type (gethash "t" response))
+         (value (gethash "r" response))
          (value-set-p nil)
-         (profile (getf 'rdp:profile response))
-         (profile (when profile
-                    (cl-rethinkdb-reql::datum-to-lisp profile
-                                                      :array-type *sequence-type*
-                                                      :object-type *object-type*))))
-    ;; by default cursor is finished
+         (backtrace (gethash "b" response))
+         (profile (gethash "p" response)))
     (setf (cursor-state cursor) :finished)
     (cond ((eq response-type +rdb-response-atom+)
-           ;; we have an atom, pull it out for further processing
-           (let* ((reql-val (aref (rdp:response response) 0)))
-             (if (eq (rdp:type reql-val) +datum-type-array+)
-                 ;; convert arrays into cursors
-                 (setf (cursor-results cursor) (rdp:r-array reql-val)
-                       value cursor
-                       value-set-p t)
-                 ;; we got an object atom
-                 (setf value (cl-rethinkdb-reql::datum-to-lisp reql-val
-                                                               :array-type *sequence-type*
-                                                               :object-type *object-type*)
-                       value-set-p t))))
-          ((eq response-type rdp:+response-response-type-success-sequence+)
+           (setf value (aref value 0)
+                 value-set-p t))
+          ((eq response-type +rdb-response-sequence+)
            ;; we have a sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (rdp:response response)
+           (setf (cursor-results cursor) value
                  value cursor
                  value-set-p t))
-          ((eq response-type rdp:+response-response-type-success-partial+)
+          ((eq response-type +rdb-response-partial+)
            ;; we have a partial sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) (rdp:response response)
+           (setf (cursor-results cursor) value
                  value cursor
                  value-set-p t
                  (cursor-state cursor) :partial))
-          ((eq response-type rdp:+response-response-type-wait-complete+)
+          ((eq response-type +rdb-response-wait-complete+)
            ;; we have a NOREPLY_WAIT response. just finish.
-           (setf (cursor-results cursor) (rdp:response response)
+           (setf (cursor-results cursor) value
                  value t
                  value-set-p t))
-          ((or (find response-type (list rdp:+response-response-type-client-error+
-                                         rdp:+response-response-type-compile-error+
-                                         rdp:+response-response-type-runtime-error+)))
+          ((or (find response-type (list +rdb-response-client-error+
+                                         +rdb-response-compile-error+
+                                         +rdb-response-runtime-error+)))
            ;; some kind of error, signal the future...
-           (let ((fail-msg (pb:string-value (rdp::r-str (aref (rdp:response response) 0)))))
-             (signal-error future
-               (make-instance (cond ((eq response-type rdp:+response-response-type-client-error+)
-                                     'query-client-error)
-                                    ((eq response-type rdp:+response-response-type-compile-error+)
-                                     'query-compile-error)
-                                    ((eq response-type rdp:+response-response-type-runtime-error+)
-                                     'query-runtime-error))
-                              :msg fail-msg
-                              :query query-form
-                              :token token))
+           (let ((fail-msg (aref value 0)))
+             (funcall rejecter
+                      (make-instance (cond ((eq response-type +rdb-response-client-error+)
+                                            'query-client-error)
+                                           ((eq response-type +rdb-response-compile-error+)
+                                            'query-compile-error)
+                                           ((eq response-type +rdb-response-runtime-error+)
+                                            'query-runtime-error))
+                                     :msg fail-msg
+                                     :query query-form
+                                     :backtrace backtrace))
              ;; because i'm paranoid
              (setf value-set-p nil))))
     (when value-set-p
-      (finish future value profile))
+      (funcall resolver value profile))
     ;; if the query is finished, remove it from state tracking.
     (when (eq (cursor-state cursor) :finished)
-      (remove-cursor cursor)))
-  response)
-|#
+      (remove-cursor cursor))))
 
-(defun connect (host port &key db use-outdated noreply profile (read-timeout 5))
+(defun connect (host port &key db use-outdated noreply profile (read-timeout 5) auth)
   "Connect to a RethinkDB database, optionally specifying the database."
-  (let ((future (do-connect host port :read-timeout read-timeout)))
-    (alet ((sock future))
-      ;; write the version 32-bit integer, little-endian
-      (let ((bytes (make-array 4 :element-type '(unsigned-byte 8)))
-            (ver +proto-version+))
-        (dotimes (i 4)
-          (setf (aref bytes i) (ldb (byte 8 (* i 8)) ver)))
-        (as:write-socket-data sock bytes))
-      ;; setup the socket's options
-      (let* ((kv nil)
-             (options (make-instance 'connection-options)))
-        (when db
-          (push `("db" . ,(cl-rethinkdb-reql::db db)) kv))
-        (when use-outdated
-          (push `("use_outdated" . ,(not (not use-outdated))) kv))
-        (when noreply
-          (push `("noreply" . ,(not (not noreply))) kv))
-        (when profile
-          (push '("profile" . t) kv))
-        (setf (conn-kv options) kv
-              (socket-data sock) options)))
-    future))
+  (alet* ((sock (do-connect host port :read-timeout read-timeout)))
+    ;; write the version 32-bit integer, little-endian
+    (sock-write sock (endian +proto-version+ 4))
+    (if auth
+        (let ((auth (if (stringp auth)
+                        (babel:string-to-octets auth)
+                        auth)))
+          (sock-write sock (endian (length auth) 4))
+          (sock-write sock auth))
+        (sock-write sock (endian 0 4)))
+    (sock-write sock (endian +proto-json+ 4))
+    ;; setup the socket's options
+    (let* ((kv nil)
+           (options (make-instance 'connection-options)))
+      (when db
+        (push `("db" . ,(cl-rethinkdb-reql::db db)) kv))
+      (when use-outdated
+        (push `("use_outdated" . ,(not (not use-outdated))) kv))
+      (when noreply
+        (push `("noreply" . ,(not (not noreply))) kv))
+      (when profile
+        (push '("profile" . t) kv))
+      (setf (conn-kv options) kv
+            (socket-data sock) options))
+    (finalize-connect sock)))
 
 (defun disconnect (sock)
   "Disconnect a RethinkDB connection."
   (do-close sock))
 
-(defun serialize-query (quer) )
+(defun serialize-query (query)
+  "Turn a query into a byte array."
+  (babel:string-to-octets
+    (with-output-to-string (s)
+      (yason:encode query s))))
+
 (defun run (sock query-form)
   "This function runs the given query, and returns a future that's finished when
    the query response comes in."
-  (let* ((future (make-future))
-         (token (generate-token))
-         (query nil)
-         (cursor (make-instance 'cursor
-                                :token token
-                                :future future)))
-    ;(setf (rdp:type query) rdp:+query-query-type-start+
-    ;      (rdp:query query) query-form)
-    ;;; setup the global options
-    ;(let* ((options (socket-data sock))
-    ;       (kv (conn-kv options)))
-    ;  (dolist (opt kv)
-    ;    (let ((assoc (make-instance 'rdp:query-assoc-pair)))
-    ;      (setf (rdp:key assoc) (pb:string-field (car opt))
-    ;            (rdp:val assoc) (cl-rethinkdb-reql::expr (cdr opt)))
-    ;      (vector-push-extend assoc (rdp:global-optargs query)))))
-    ;;; set the token into the query
-    ;(setf (rdp:token query) (the fixnum token))
-    ;; save the query with the token so it can be looked up later
-    (save-cursor token cursor)
-    (forward-errors (future)
-      ;; serialize/send/parse the query
-      (alet* ((response-bytes (do-send sock (serialize-query query)))
-              ;(response (make-instance 'rdp:response))
-              (size (length response-bytes)))
-        (handler-case
-          (parse-response response :query-form query-form)
-          (error (e)
-            (signal-error future e)))))
-    (setf (cursor-state cursor) :sent)
-    future))
+  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+    (let* ((token (generate-token))
+           (query-options (hu:hash))
+           (query (list +proto-query-start+ query-form query-options))
+           (cursor (make-instance 'cursor
+                                  :token token
+                                  :future (cons resolver rejecter)))
+           (options (socket-data sock))
+           (kv (conn-kv options)))
+      (dolist (opt kv)
+        (setf (gethash (car opt) query-options) (cdr opt)))
+      (save-cursor token cursor)
+      (let ((serialized (serialize-query query)))
+        (sock-write sock (endian token 8))
+        (sock-write sock (endian (length serialized) 4))
+        (sock-write sock serialized)
+        (finalize-query sock)
+        (setf (cursor-state cursor) :sent)))))
 
 (defun wait-complete (sock)
   "Wait for noreply => t queries to come back LOL."
-  (let* ((future (make-future))
-         (token (generate-token))
-         (cursor (make-instance 'cursor
-                                :token token
-                                :future future)))
-    ;(setf (rdp:type query) rdp:+query-query-type-noreply-wait+
-    ;      (rdp:token query) (the fixnum token))
-    (save-cursor token cursor)
-    (forward-errors (future)
-      (alet* ((response-bytes (do-send sock nil))
-              ;(response (make-instance 'rdp:response))
-              (size (length response-bytes)))
-        ;(pb:merge-from-array response response-bytes 0 size)
-        (handler-case
-          (parse-response response)
-          (error (e)
-            (signal-error future e)))))
-    future))
+  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+    (let* ((token (generate-token))
+           (query (list +proto-query-wait+))
+           (cursor (make-instance 'cursor
+                                  :token token
+                                  :future (cons resolver rejecter))))
+      (save-cursor token cursor)
+      (let ((serialized (serialize-query query)))
+        (sock-write sock (endian token 8))
+        (sock-write sock (endian (length serialized) 4))
+        (sock-write sock serialized)
+        (finalize-query sock)
+        (setf (cursor-state cursor) :wait)))))
 
 (defun more (sock token)
   "Continue a query."
-  (let ((future (make-future))
-        ;(query (make-instance 'rdp:query))
-        (cursor (get-cursor token)))
-    ;(setf (rdp:token query) (the fixnum token)
-    ;      (rdp:type query) rdp:+query-query-type-continue+
-    ;      (cursor-future cursor) future)
-    ;; save the query with the token so it can be looked up later
-    (save-cursor token cursor)
-    (forward-errors (future)
-      (alet* ((response-bytes (do-send sock (serialize-protobuf query)))
-              ;(response (make-instance 'rdp:response))
-              (size (length response-bytes)))
-        ;(pb:merge-from-array response response-bytes 0 size)
-        (handler-case
-          (parse-response response)
-          (error (e)
-            (signal-error future e)))))
-    future))
+  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+    (let* ((query (list +proto-query-continue+))
+           (cursor (get-cursor token)))
+      ;; replace the cursor's promise resolver
+      (setf (cursor-future cursor) (cons resolver rejecter))
+      (save-cursor token cursor)
+      (let ((serialized (serialize-query query)))
+        (sock-write sock (endian token 8))
+        (sock-write sock (endian (length serialized) 4))
+        (sock-write sock serialized)
+        (finalize-query sock)
+        (setf (cursor-state cursor) :more)))))
 
 (defun stop (sock cursor)
   "Cleanup a cursor both locally and in the database. Returns a future that is
    finished with *no values* once the stop operation has completed."
-  (let ((future (make-future))
-        (token (cursor-token cursor)))
-    (if (eq (cursor-state cursor) :partial)
-        ;(let ((query (make-instance 'rdp:query)))
-        ;  (setf (rdp:token query) (the fixnum token)
-        ;        (rdp:type query) rdp:+query-query-type-stop+)
-        ;  (forward-errors (future)
-        ;    (wait-for (do-send sock (serialize-protobuf query))
-        ;      (remove-cursor cursor)
-        ;      (finish future))))
-        (progn
-          (remove-cursor cursor)
-          (finish future)))
-    future))
+  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+    (let* ((query (list +proto-query-stop+))
+           (token (cursor-token cursor)))
+      ;; replace the cursor's promise resolver
+      (setf (cursor-future cursor) (cons resolver rejecter))
+      (if (eq (cursor-state cursor) :parial)
+          (let ((serialized (serialize-query query)))
+            (sock-write sock (endian token 8))
+            (sock-write sock (endian (length serialized) 4))
+            (sock-write sock serialized)
+            (finalize-query sock)
+            (setf (cursor-state cursor) :stop))
+          (progn
+            (remove-cursor cursor)
+            (resolve))))))
 
 (defun stop/disconnect (sock cursor)
   "Call stop on a cursor and disconnect the passed socket."
-  (if (cursorp cursor)
-      (wait-for (stop sock cursor)
-        (disconnect sock))
-      (disconnect sock)))
+  (with-promise (resolve reject)
+    (if (cursorp cursor)
+        (catcher
+          (wait (stop sock cursor)
+            (resolve (disconnect sock)))
+          (t (e) (reject e)))
+        (resolve (disconnect sock)))))
 
 (defun next (sock cursor)
   "Grab the next result from a cursor. Always returns a future since it may have
    to get more results from the server."
-  (let ((future (make-future))
-        (num-results (length (cursor-results cursor)))
-        (cur-result (cursor-current-result cursor))
-        (token (cursor-token cursor)))
-    (cond ((< num-results cur-result)
-           ;; shouldn't be here, quit calling next!
-           (signal-error future (make-instance 'cursor-overshot
-                                               :token token
-                                               :cursor cursor)))
-          ((= cur-result num-results)
-           ;; we're out of results. if this was a partial, get more results,
-           ;; if not signal a "no more results" error
-           (if (eq (cursor-state cursor) :partial)
-               ;; moar plz
-               (forward-errors (future)
-                 (alet ((new-cursor (more sock token)))
-                   (finish future (next sock new-cursor))))
-               ;; lol none left!!!!
-               (signal-error future (make-instance 'cursor-no-more-results
-                                                   :token token
-                                                   :cursor cursor))))
-          (t
-           ;; have a local result, send it directly into the future
-           (finish future (cl-rethinkdb-reql::datum-to-lisp
-                            (aref (cursor-results cursor) cur-result)
-                            :array-type *sequence-type*
-                            :object-type *object-type*))))
-    ;; keep the pointer up to date
-    (incf (cursor-current-result cursor))
-    future))
+  (with-promise (resolve reject)
+    (let ((num-results (length (cursor-results cursor)))
+          (cur-result (cursor-current-result cursor))
+          (token (cursor-token cursor)))
+      (cond ((< num-results cur-result)
+             ;; shouldn't be here, quit calling next!
+             (reject (make-instance 'cursor-overshot
+                                    :token token
+                                    :cursor cursor)))
+            ((= cur-result num-results)
+             ;; we're out of results. if this was a partial, get more results,
+             ;; if not signal a "no more results" error
+             (catcher
+               (if (eq (cursor-state cursor) :partial)
+                   ;; moar plz
+                   (alet* ((new-cursor (more sock token)))
+                     (resolve (next sock new-cursor)))
+                   ;; lol none left!!!!
+                   (reject (make-instance 'cursor-no-more-results
+                                          :token token
+                                          :cursor cursor)))
+               (t (e) (reject e))))
+            (t
+             ;; have a local result, send it directly into the future
+             (resolve (aref (cursor-results cursor) cur-result))))
+      ;; keep the pointer up to date
+      (incf (cursor-current-result cursor)))))
 
 (defun has-next (cursor)
   "Determine if a cursor has more results."
@@ -378,52 +354,45 @@
 (defun to-array (sock cursor)
   "Grab ALL results from a cursor. Returns a future finished with the final
    array."
-  (let ((future (make-future))
-        (token (cursor-token cursor)))
-    (labels ((append-results (all-results)
-               (if (eq (cursor-state cursor) :partial)
-                   (wait-for (more sock token)
-                     (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
-                   (finish future (cl-rethinkdb-reql::datum-to-lisp
-                                    all-results
-                                    :array-type *sequence-type*
-                                    :object-type *object-type*)))))
-      (append-results (cursor-results cursor)))
-    future))
+  (with-promise (resolve reject)
+    (let ((token (cursor-token cursor)))
+      (labels ((append-results (all-results)
+                 (catcher
+                   (if (eq (cursor-state cursor) :partial)
+                       (wait (more sock token)
+                         (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
+                       (resolve all-results))
+                   (t (e) (reject e)))))
+        (append-results (cursor-results cursor))))))
 
 (defun each (sock cursor function)
   "Call the given function on every result in the given cursor."
-  (let ((future (make-future)))
+  (with-promise (resolve reject)
     (labels ((get-next ()
-               (if (has-next cursor)
-                   (alet ((result (next sock cursor)))
-                     (wait-for (funcall function result)
-                       (get-next)))
-                   (finish future))))
-      (get-next))
-    future))
+               (catcher
+                 (if (has-next cursor)
+                     (alet* ((result (next sock cursor)))
+                       (wait (funcall function result)
+                         (get-next)))
+                     (resolve))
+                 (t (e) (reject e)))))
+      (get-next))))
 
 (defun test_ (query-form)
-  (as:with-event-loop (:catch-app-errors t)
-    (future-handler-case
-      (alet ((sock (connect "127.0.0.1" 28015 :read-timeout 1)))
-        (future-handler-case
-          (multiple-future-bind (res)
-              (run sock query-form)
-            (format t "---response---")
-            (if (cursorp res)
-                (alet ((res (to-array sock res)))
-                  (pprint res)
-                  (format t "~%")
-                  ;(disconnect sock)
-                  )
-                (progn
-                  (pprint res)
-                  (format t "~%")
-                  (disconnect sock))))
-          (t (e)
-            (format t "Query error: ~a~%" e)
-            (disconnect sock))))
-      (t (e)
-        (format t "Error: ~a~%" e)))))
+  (as:with-event-loop (:catch-app-errors nil)
+    (let ((main-sock nil))
+      (finally
+        (catcher
+          (alet* ((sock (connect "127.0.0.1" 28015 :db "test" :read-timeout 5)))
+            (setf main-sock sock)
+            (multiple-promise-bind (res)
+                (run sock query-form)
+              (format t "---response---~%")
+              (if (cursorp res)
+                  (alet* ((res (to-array sock res)))
+                    (jprint res))
+                  (jprint res))
+              (format t "~%")))
+          (t (e) (format t "(err) ~a~%" e)))
+        (disconnect main-sock)))))
 

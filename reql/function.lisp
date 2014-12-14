@@ -16,5 +16,5 @@
     `(symbol-macrolet (,@(loop for a in args
                                for n in arg-nums
                                collect (list a `(var ,n))))
-       (func ',arg-nums (r ,@body)))))
+       (func ',(apply 'make-array arg-nums) (r ,@body)))))
 

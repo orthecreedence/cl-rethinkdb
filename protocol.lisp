@@ -3,6 +3,11 @@
 (defconstant +proto-version+ #x5f75e83e)
 (defconstant +proto-json+ #x7e6970c7)
 
+(defconstant +proto-query-start+ 1)
+(defconstant +proto-query-continue+ 2)
+(defconstant +proto-query-stop+ 3)
+(defconstant +proto-query-wait+ 4)
+
 (defconstant +rdb-response-atom+ 1)
 (defconstant +rdb-response-sequence+ 2)
 (defconstant +rdb-response-partial+ 3)
