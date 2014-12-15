@@ -169,7 +169,6 @@
         (setf err e))
       (:finally
         (disconnect sock)))
-    (format t "res: ~a~%" (json res3))
     (is (eq res1 9))
     (is (eq res2 54))
     (is (eq (gethash "start" res3) 0))

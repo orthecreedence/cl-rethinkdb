@@ -26,7 +26,7 @@
                    (t x))))
     (replace-arrays val)))
 
-(defclass cmd ()
+(defclass reql-cmd ()
   ((name :accessor cmd-name :initarg :name :initform "")
    (op :accessor cmd-op :initarg :op :initform 0)
    (args :accessor cmd-args :initarg :args :initform nil)
@@ -34,7 +34,7 @@
   (:documentation
     "Describes a REQL command."))
 
-(defmethod print-object ((cmd cmd) s)
+(defmethod print-object ((cmd reql-cmd) s)
   (print-unreadable-object (cmd s :type t :identity t)
     (format s "~_(~a/~a ~s "
             (cmd-name cmd)
@@ -43,7 +43,7 @@
     (yason:encode (cmd-options cmd) s)
     (format s ")")))
             
-(defmethod yason:encode ((cmd cmd) &optional (stream *standard-output*))
+(defmethod yason:encode ((cmd reql-cmd) &optional (stream *standard-output*))
   (yason:with-output (stream)
     (yason:with-array ()
       (let ((elements (cl:append
@@ -82,7 +82,7 @@
                            for default in optargs-processed collect
                        `(when ,(caddr default)
                           (setf (gethash ,jskey ,hash-sym) ,key)))
-                   (make-instance 'cmd
+                   (make-instance 'reql-cmd
                                   :name ,name-keyword
                                   :op ,termval
                                   :args (or (mapcar 'cmd-arg
