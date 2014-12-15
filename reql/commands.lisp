@@ -3,15 +3,28 @@
 (defparameter *commands* (make-hash-table :test 'eq)
   "Holds name -> lambda mappings for our commands.")
 
+(defun replace-arrays (x)
+  "Makes sure all DATA (not command) arrays are wrapped in a make-array cmd."
+  (cond ((and (listp x)
+              (not (null x)))
+         (apply 'make-array x))
+        ((and (vectorp x)
+              (not (stringp x)))
+         (apply 'make-array (coerce x 'list)))
+        ((hash-table-p x)
+         (loop for k being the hash-keys of x
+               for v being the hash-values of x do
+           (setf (gethash k x) (replace-arrays v)))
+         x)
+        (t x)))
+
 (defun cmd-arg (x)
   "Wraps command arguments and runs any conversions we need."
   ;; look for alists and convert to hash tables
-  (cond ((alistp x)
-         (alexandria:alist-hash-table x))
-        ((and (not (null x))
-              (listp x))
-         (apply 'make-array x))
-        (t x)))
+  (let ((val (cond ((alistp x)
+                    (alexandria:alist-hash-table x))
+                   (t x))))
+    (replace-arrays val)))
 
 (defclass cmd ()
   ((name :accessor cmd-name :initarg :name :initform "")
@@ -149,7 +162,7 @@
 (defcommand (87 indexes-of) (sequence object/function))
 (defcommand (93 contains) (sequence object/function))
 
-(defcommand (31 get-field) (object key))
+(defcommand (31 attr) (object key))
 (defcommand (94 keys) (object))
 (defcommand (143 object) (&rest pairs))
 (defcommand (32 has-fields) (object &rest pathspec))

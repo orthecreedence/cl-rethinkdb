@@ -4,6 +4,7 @@
   :version "0.5.0"
   :description "A RethinkDB driver for Common Lisp"
   :depends-on (#:blackbird
+               #:vom
                #:cl-async
                #:fast-io
                #:yason

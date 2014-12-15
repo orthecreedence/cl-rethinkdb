@@ -140,7 +140,8 @@
    token), and either resolve/reject the cursor's promise with the return of the
    query."
   (let* ((token (unendian response-bytes 8))
-         (response (yason:parse (babel:octets-to-string (subseq response-bytes (+ 8 4)))
+         (response-unparsed (subseq response-bytes (+ 8 4)))
+         (response (yason:parse (babel:octets-to-string response-unparsed)
                                 :json-arrays-as-vectors t))
          (cursor (get-cursor token))
          (promise-data (cursor-future cursor))
@@ -151,6 +152,7 @@
          (value-set-p nil)
          (backtrace (gethash "b" response))
          (profile (gethash "p" response)))
+    (vom:info "recv: ~a" (babel:octets-to-string response-unparsed))
     (setf (cursor-state cursor) :finished)
     (cond ((eq response-type +rdb-response-atom+)
            (setf value (aref value 0)
@@ -252,6 +254,7 @@
         (sock-write sock (endian (length serialized) 4))
         (sock-write sock serialized)
         (finalize-query sock)
+        (vom:info "send: run: ~a" (babel:octets-to-string serialized))
         (setf (cursor-state cursor) :sent)))))
 
 (defun wait-complete (sock)
@@ -267,6 +270,7 @@
         (sock-write sock (endian token 8))
         (sock-write sock (endian (length serialized) 4))
         (sock-write sock serialized)
+        (vom:info "send: wait: ~a" (babel:octets-to-string serialized))
         (finalize-query sock)
         (setf (cursor-state cursor) :wait)))))
 
@@ -283,6 +287,7 @@
         (sock-write sock (endian (length serialized) 4))
         (sock-write sock serialized)
         (finalize-query sock)
+        (vom:info "send: more: ~a" (babel:octets-to-string serialized))
         (setf (cursor-state cursor) :more)))))
 
 (defun stop (sock cursor)
@@ -293,12 +298,13 @@
            (token (cursor-token cursor)))
       ;; replace the cursor's promise resolver
       (setf (cursor-future cursor) (cons resolver rejecter))
-      (if (eq (cursor-state cursor) :parial)
+      (if (eq (cursor-state cursor) :partial)
           (let ((serialized (serialize-query query)))
             (sock-write sock (endian token 8))
             (sock-write sock (endian (length serialized) 4))
             (sock-write sock serialized)
             (finalize-query sock)
+            (vom:info "send: stop: ~a" (babel:octets-to-string serialized))
             (setf (cursor-state cursor) :stop))
           (progn
             (remove-cursor cursor)
@@ -395,6 +401,4 @@
               (format t "~%")))
           (t (e) (format t "(err) ~a~%" e)))
         (disconnect main-sock)))))
-
-;(test_ (r:r (:insert (:table "fff") (hu:hash ("name" "andrew") ("age" 28)))))
 

@@ -30,20 +30,21 @@
         (q3 (json (r:fn (x) (:get (:table "users") x)))))
     (is (string= q1 "[15,[\"test\"]]"))
     (is (string= q2 "[24,[3,8]]"))
-    (is (cl-ppcre:scan 
-"\\[69,\\[\\[2,\\[3]],\\[16,\\[\\[15,\\[\"users\"]],\\[10,\\[3]]]]]]"
-    (is (eq (
-    (is (equalp q2 '(24 (3 8))))
-    (is (eq (car q3) 69))))
+    (is (cl-ppcre:scan "\\[69,\\[\\[2,\\[[0-9]\+\\]\\],\\[16,\\[\\[15,\\[\"users\"\\]\\],\\[10,\\[[0-9]\+\\]\\]\\]\\]\\]\\]"
+                       q3))))
 
 (test (connect :depends-on query-lang)
   "Test connections"
-  (setup ((the-sock nil)) err
-    (alet* ((sock (conn)))
-      (setf the-sock sock)
-      (disconnect sock))
+  (setup ((sock nil)) err
+    (chain (conn)
+      (:then (the-sock)
+        (setf sock the-sock))
+      (:catch (e) (setf err e))
+      (:finally
+        (when sock
+          (disconnect sock))))
     (is (eq err nil))
-    (is (typep the-sock 'as:socket))))
+    (is (typep sock 'as:socket))))
 
 (test (reset :depends-on connect)
   "Clear out old test stuff."
@@ -73,16 +74,15 @@
       (:then (qres &rest _)
         (declare (ignore _))
         (setf res qres))
+      (:catch (e)
+        (setf err e))
       (:finally
         (disconnect sock)))
     (is (string= (json res) "{\"created\":1}"))
     (is (eq err nil))))
 
-(setf *debug-on-error* t)
-
 (test (insert :depends-on setup)
   "Test inserts"
-  (format t "~%---~%")
   (setup ((res nil)
           (users (list (hash ("name" "andrew")
                              ("age" 28)
@@ -98,17 +98,15 @@
       (:then (socket)
         (setf sock socket)
         (let ((query (r:r (:insert (:table "users") users))))
-          (format t "~%---~%query: ~s~%" query)
           (r:run sock query)))
       (:then (qres &rest _)
         (declare (ignore _))
-        (format t "~%---~%res: ~a~%" qres)
         (setf res qres))
       (:catch (e) (setf err e))
       (:finally (disconnect sock)))
+    (remhash "generated_keys" res)
     (is (string= 
-          (json (mapcar (lambda (x) (remhash "generated_keys" x)) res))
-          "{\"unchanged\":0,\"deleted\":0,\"inserted\":1,\"errors\":0,\"skipped\":0,\"replaced\":0}"))
-    (format t "~%---~%err: ~a~%" err)
+          (json res)
+          "{\"unchanged\":0,\"deleted\":0,\"inserted\":3,\"errors\":0,\"skipped\":0,\"replaced\":0}"))
     (is (eq err nil))))
 
