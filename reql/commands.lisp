@@ -111,11 +111,15 @@
          (optargs (subseq all-args (cl:min (length all-args) keypos)))
          (op-orig fn)
          (op-key (intern (string-upcase (format nil "~a-~a" fn (length args))) :keyword))
-         (op-key-def (intern (string-upcase (format nil "~a-0" fn)) :keyword))
+         (op-key-def1 (intern (string-upcase (format nil "~a-0" fn)) :keyword))
+         (op-key-def2 (intern (string-upcase (format nil "~a-1" fn)) :keyword))
          (fn (gethash op-key *commands*))
          (fn (if fn
                  fn
-                 (gethash op-key-def *commands*))))
+                 (gethash op-key-def1 *commands*)))
+         (fn (if fn
+                 fn
+                 (gethash op-key-def2 *commands*))))
     (if fn
         (apply fn (cl:append args
                              optargs))
