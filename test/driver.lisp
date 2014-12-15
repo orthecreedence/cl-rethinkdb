@@ -82,7 +82,7 @@
     (is (eq err nil))))
 
 (test (insert :depends-on setup)
-  "Test inserts"
+  "Test (multi) inserts"
   (setup ((res nil)
           (users (list (hash ("name" "andrew")
                              ("age" 28)
@@ -108,5 +108,47 @@
     (is (string= 
           (json res)
           "{\"unchanged\":0,\"deleted\":0,\"inserted\":3,\"errors\":0,\"skipped\":0,\"replaced\":0}"))
+    (is (eq err nil))))
+
+(test (filter :depends-on insert)
+  "Test that filtering/functions work properly"
+  (setup (res sock cur) err
+    (chain (conn)
+      (:then (socket)
+        (setf sock socket)
+        (r:run sock (r:r (:filter
+                           (:table "users")
+                           (r:fn (x) (:== (:attr x "name") "slappy"))))))
+      (:then (cursor _)
+        (declare (ignore _))
+        (setf cur cursor)
+        (next sock cursor))
+      (:then (val)
+        (setf res val))
+      (:catch (e)
+        (setf err e))
+      (:finally
+        (stop/disconnect sock cur)))
+    (is (eq (gethash "age" res) 23))
+    (is (eq err nil))))
+
+(test (delete :depends-on filter)
+  "Test deletes"
+  (setup (res sock) err
+    (chain (conn)
+      (:then (socket)
+        (setf sock socket)
+        (r:run sock (r:r (:delete
+                           (:filter
+                             (:table "users")
+                             (r:fn (x) (:== (:attr x "age") 23)))))))
+      (:then (qres _)
+        (declare (ignore _))
+        (setf res qres))
+      (:catch (e)
+        (setf err e))
+      (:finally
+        (disconnect sock)))
+    (is (eq (gethash "deleted" res) 1))
     (is (eq err nil))))
 
