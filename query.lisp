@@ -396,3 +396,5 @@
           (t (e) (format t "(err) ~a~%" e)))
         (disconnect main-sock)))))
 
+;(test_ (r:r (:insert (:table "fff") (hu:hash ("name" "andrew") ("age" 28)))))
+

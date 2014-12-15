@@ -4,6 +4,8 @@
   "Holds name -> lambda mappings for our commands.")
 
 (defun cmd-arg (x)
+  "Wraps command arguments and runs any conversions we need."
+  ;; look for alists and convert to hash tables
   (if (alistp x)
       (alexandria:alist-hash-table x)
       x))
@@ -60,16 +62,17 @@
   (let* ((keypos (or (position-if (lambda (x) (keywordp x)) all-args) (length all-args)))
          (args (subseq all-args 0 keypos))
          (optargs (subseq all-args (cl:min (length all-args) keypos)))
+         (op-orig fn)
          (op-key (intern (string-upcase (format nil "~a-~a" fn (length args))) :keyword))
          (op-key-def (intern (string-upcase (format nil "~a-0" fn)) :keyword))
          (fn (gethash op-key *commands*))
          (fn (if fn
                  fn
                  (gethash op-key-def *commands*))))
-    (unless fn
-      (error (format nil "command ~s (of ~a arguments) not found" op-key (length args))))
-    (apply fn (cl:append args
-                         optargs))))
+    (if fn
+        (apply fn (cl:append args
+                             optargs))
+        (cl:error (format nil "command ~s (of ~a arguments) not found" op-orig (length args))))))
 
 (defcommand (2 make-array) (&rest objects))
 (defcommand (3 make-obj) (hash))
