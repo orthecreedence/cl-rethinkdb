@@ -6,9 +6,39 @@
 (defun cmd-arg (x)
   "Wraps command arguments and runs any conversions we need."
   ;; look for alists and convert to hash tables
-  (if (alistp x)
-      (alexandria:alist-hash-table x)
-      x))
+  (cond ((alistp x)
+         (alexandria:alist-hash-table x))
+        ((and (not (null x))
+              (listp x))
+         (apply 'make-array x))
+        (t x)))
+
+(defclass cmd ()
+  ((name :accessor cmd-name :initarg :name :initform "")
+   (op :accessor cmd-op :initarg :op :initform 0)
+   (args :accessor cmd-args :initarg :args :initform nil)
+   (options :accessor cmd-options :initarg :options :initform (hu:hash)))
+  (:documentation
+    "Describes a REQL command."))
+
+(defmethod print-object ((cmd cmd) s)
+  (print-unreadable-object (cmd s :type t :identity t)
+    (format s "~_(~a/~a ~s "
+            (cmd-name cmd)
+            (cmd-op cmd)
+            (cmd-args cmd))
+    (yason:encode (cmd-options cmd) s)
+    (format s ")")))
+            
+(defmethod yason:encode ((cmd cmd) &optional (stream *standard-output*))
+  (yason:with-output (stream)
+    (yason:with-array ()
+      (let ((elements (cl:append
+                        (list (cmd-op cmd)
+                              (cmd-args cmd))
+                        (unless (zerop (hash-table-count (cmd-options cmd)))
+                          (list (cmd-options cmd))))))
+        (apply 'yason:encode-array-elements elements)))))
 
 (defmacro defcommand ((termval name &key (defun t)) all-args &key docstr arrays)
   "Wraps creation of commands."
@@ -28,9 +58,10 @@
          (process-args (lambda ()
                          (loop for x in args collect
                            (if (find x arrays)
-                               `(cmd-arg ,x)
-                               `(list (cmd-arg ,x))))))
-         (hash-sym (gensym "hash")))
+                               x
+                               `(list ,x)))))
+         (hash-sym (gensym "hash"))
+         (name-keyword (intern (string name) :keyword)))
     `(let ((fn (lambda ,lambda-list
                  (let ((,hash-sym (hu:hash)))
                    ,@(loop for key in optargs
@@ -38,11 +69,14 @@
                            for default in optargs-processed collect
                        `(when ,(caddr default)
                           (setf (gethash ,jskey ,hash-sym) ,key)))
-                   (cl:append (list ,termval (or (cl:append ,@(funcall process-args)
-                                                            (cmd-arg ,(car restargs)))
-                                                 #()))
-                              (unless (zerop (hash-table-count ,hash-sym))
-                                (list ,hash-sym))))))
+                   (make-instance 'cmd
+                                  :name ,name-keyword
+                                  :op ,termval
+                                  :args (or (mapcar 'cmd-arg
+                                                    (cl:append ,@(funcall process-args)
+                                                               ,(car restargs)))
+                                            #())
+                                  :options ,hash-sym))))
            (key ,(intern (format nil "~a-~a" (string-upcase (string name)) (length args)) :keyword)))
        (setf (gethash key *commands*) fn)
        ,(when defun
@@ -181,7 +215,7 @@
 (defcommand (67 all) (&rest bools))
 (defcommand (68 foreach) (sequence function))
 
-(defcommand (69 func) (array body))
+(defcommand (69 func) (args body))
 (defcommand (73 asc) (string))
 (defcommand (74 desc) (string))
 

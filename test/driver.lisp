@@ -24,11 +24,15 @@
     (yason:encode obj s)))
 
 (test query-lang
-  "Test that creation of queries works"
-  (let ((q1 (r:r (:table "test")))
-        (q2 (r:r (:+ 3 8)))
-        (q3 (r:fn (x) (:get (:table "users") x))))
-    (is (equalp q1 '(15 ("test"))))
+  "Test that creation/serialization of queries works"
+  (let ((q1 (json (r:r (:table "test"))))
+        (q2 (json (r:r (:+ 3 8))))
+        (q3 (json (r:fn (x) (:get (:table "users") x)))))
+    (is (string= q1 "[15,[\"test\"]]"))
+    (is (string= q2 "[24,[3,8]]"))
+    (is (cl-ppcre:scan 
+"\\[69,\\[\\[2,\\[3]],\\[16,\\[\\[15,\\[\"users\"]],\\[10,\\[3]]]]]]"
+    (is (eq (
     (is (equalp q2 '(24 (3 8))))
     (is (eq (car q3) 69))))
 
@@ -76,15 +80,6 @@
 
 (setf *debug-on-error* t)
 
-(r:r (:insert (:table "users") (list (hash ("name" "andrew")
-                                           ("age" 28)
-                                           ("pets" '("timmy" "wookie" "lucy")))
-                                     (hash ("name" "larry")
-                                           ("age" 52)
-                                           ("pets" '("ricky raccoon" "jack (in the pulpit)")))
-                                     (hash ("name" "slappy")
-                                           ("age" 23)
-                                           ("pets" '("barry"))))))
 (test (insert :depends-on setup)
   "Test inserts"
   (format t "~%---~%")
