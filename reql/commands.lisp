@@ -34,6 +34,10 @@
   (:documentation
     "Describes a REQL command."))
 
+(defmethod make-load-form ((cmd reql-cmd) &optional env)
+  (declare (ignore env))
+  (make-load-form-saving-slots cmd))
+
 (defmethod print-object ((cmd reql-cmd) s)
   (print-unreadable-object (cmd s :type t :identity t)
     (format s "~_(~a/~a ~s "
