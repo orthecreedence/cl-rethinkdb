@@ -149,7 +149,7 @@
 (defcommand (20 <=) (&rest objects))
 (defcommand (21 >) (&rest objects))
 (defcommand (22 >=) (&rest objects))
-(defcommand (23 !) (bool))
+(defcommand (23 ~) (bool))
 (defcommand (24 +) (&rest objects))
 (defcommand (25 -) (&rest objects))
 (defcommand (26 *) (&rest objects))
@@ -232,8 +232,8 @@
 
 (defcommand (64 do) (function &rest args))
 (defcommand (65 branch) (bool true-expr false-expr))
-(defcommand (66 any) (&rest bools))
-(defcommand (67 all) (&rest bools))
+(defcommand (66 ||) (&rest bools))
+(defcommand (67 &&) (&rest bools))
 (defcommand (68 foreach) (sequence function))
 
 (defcommand (69 func) (args body))
