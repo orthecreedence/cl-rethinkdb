@@ -1,5 +1,14 @@
 (in-package :cl-rethinkdb-reql)
 
+(defun query-builder (form)
+  "Takes a query form and turns it into a tree of query objects."
+  (if (and (listp form)
+           (keywordp (car form)))
+      (apply 'call
+             (car form)
+             (mapcar 'query-builder (cdr form)))
+      form))
+
 (defmacro r (&body query-form)
   "Wraps query generation in a macro that takes care of pesky function naming
    issues. For instance, the function `count` is reserved in CL, so importing
@@ -15,17 +24,5 @@
    
    This allows you to separate CL functions from query functions both logically
    and visually."
-  ;; collect all our commands (from defcommand) into a big ol' macrolet form
-  ;; that converts keywords into the function equivalents
-  (let ((macrolet-forms
-          (loop for c being the hash-keys of *commands*
-                for k = (intern (cl-ppcre:regex-replace "-[0-9]$" (symbol-name c) "")
-                                :keyword)
-                collect `(,k (&rest args)
-                           `(call ,',k ,@args)))))
-                
-    `(progn
-       (macrolet (,@(remove-duplicates macrolet-forms :test (lambda (x y)
-                                                              (eq (car x) (car y)))))
-         ,@query-form))))
+  `(query-builder ',query-form))
 
