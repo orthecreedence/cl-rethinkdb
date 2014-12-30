@@ -8,6 +8,8 @@
          (cl:append (list 'call
                           (car form))
                     (mapcar 'query-builder (cdr form))))
+        ((listp form)
+         (mapcar 'query-builder form))
         (t form)))
 
 (defmacro r (query-form)
