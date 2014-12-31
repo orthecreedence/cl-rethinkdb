@@ -75,7 +75,9 @@
          (process-args (lambda ()
                          (loop for x in args collect
                            (if (find x arrays)
-                               x
+                               `(if (listp ,x)
+                                    ,x
+                                    (list ,x))
                                `(list ,x)))))
          (hash-sym (gensym "hash"))
          (name-keyword (intern (string name) :keyword)))
@@ -220,10 +222,13 @@
 (defcommand (60 table-create :defun nil) (name &key datacenter primary-key durability))
 (defcommand (61 table-drop) (db name))
 (defcommand (61 table-drop :defun nil) (name))
+(defcommand (62 table-list) (db))
+(defcommand (62 table-list :defun nil) ())
 
 (defcommand (138 sync) (table))
 
-(defcommand (75 index-create) (table name function &key multi))
+(defcommand (75 index-create) (table name function &key multi geo))
+(defcommand (75 index-create :defun nil) (table name &key multi geo))
 (defcommand (76 index-drop) (table name))
 (defcommand (77 index-list) (table))
 (defcommand (139 index-status) (table &rest names))

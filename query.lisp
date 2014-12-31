@@ -5,19 +5,19 @@
    (query :reader query-error-query :initarg :query :initform nil)
    (backtrace :reader query-error-backtrace :initarg :backtrace :initform nil)
    (msg :reader query-error-msg :initarg :msg :initform ""))
-  (:report (lambda (c s) (format s "Query failed (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:report (lambda (c s) (format s "Query failed (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A general query failure condition."))
 
 (define-condition query-client-error (query-error) ()
-  (:report (lambda (c s) (format s "Client error: Query (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:report (lambda (c s) (format s "Client error: Query (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A client error condition."))
 
 (define-condition query-compile-error (query-error) ()
-  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a~%---~%~a~%" (query-error-token c) (query-error-msg c) (query-error-query c))))
+  (:report (lambda (c s) (format s "Query failed to compile (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A query compile error condition."))
   
 (define-condition query-runtime-error (query-error) ()
-  (:report (lambda (c s) (format s "Query runtime error (~a): ~a" (query-error-token c) (query-error-msg c))))
+  (:report (lambda (c s) (format s "Query runtime error (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A query runtime error condition."))
 
 (define-condition cursor-error (simple-error)
@@ -58,7 +58,9 @@
    (results :accessor cursor-results :initform nil
      :documentation "Holds the current result set from the query.")
    (current-result :accessor cursor-current-result :initform 0
-     :documentation "Tracks which record the cursor points to."))
+     :documentation "Tracks which record the cursor points to.")
+   (debug :accessor cursor-debug :initarg :debug :initform nil
+     :documentation "Holds freeform debug info for this cursor."))
   (:documentation
     "The query class holds the state of a query, as well as the future that will
      be finished when the query returns results."))
@@ -135,7 +137,7 @@
           (let ((output (fast-io:finish-output-buffer response-buffer)))
             output))))))
 
-(defun parse-response (response-bytes &key query-form)
+(defun parse-response (response-bytes)
   "Given a full response byte array, parse it, find the attached cursor (by
    token), and either resolve/reject the cursor's promise with the return of the
    query."
@@ -144,6 +146,7 @@
          (response (yason:parse (babel:octets-to-string response-unparsed)
                                 :json-arrays-as-vectors t))
          (cursor (get-cursor token))
+         (query-form (cursor-debug cursor))
          (promise-data (cursor-future cursor))
          (resolver (car promise-data))
          (rejecter (cdr promise-data))
@@ -177,17 +180,19 @@
                                          +rdb-response-compile-error+
                                          +rdb-response-runtime-error+)))
            ;; some kind of error, signal the future...
-           (let ((fail-msg (aref value 0)))
-             (funcall rejecter
-                      (make-instance (cond ((eq response-type +rdb-response-client-error+)
-                                            'query-client-error)
-                                           ((eq response-type +rdb-response-compile-error+)
-                                            'query-compile-error)
-                                           ((eq response-type +rdb-response-runtime-error+)
-                                            'query-runtime-error))
-                                     :msg fail-msg
-                                     :query query-form
-                                     :backtrace backtrace))
+           (let* ((fail-msg (aref value 0))
+                  (error-obj (make-instance (cond ((eq response-type +rdb-response-client-error+)
+                                                   'query-client-error)
+                                                  ((eq response-type +rdb-response-compile-error+)
+                                                   'query-compile-error)
+                                                  ((eq response-type +rdb-response-runtime-error+)
+                                                   'query-runtime-error))
+                                            :msg fail-msg
+                                            :query query-form
+                                            :backtrace backtrace)))
+             (catcher
+               (error error-obj)
+               ((or error simple-error) (e) (funcall rejecter e)))
              ;; because i'm paranoid
              (setf value-set-p nil))))
     (when value-set-p
@@ -243,7 +248,8 @@
            (query (list +proto-query-start+ query-form query-options))
            (cursor (make-instance 'cursor
                                   :token token
-                                  :future (cons resolver rejecter)))
+                                  :future (cons resolver rejecter)
+                                  :debug query-form))
            (options (socket-data sock))
            (kv (conn-kv options)))
       (dolist (opt kv)
