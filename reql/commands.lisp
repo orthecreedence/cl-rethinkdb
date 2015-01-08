@@ -187,7 +187,8 @@
 
 (defcommand (39 filter) (sequence function &key default))
 (defcommand (40 concatmap) (sequence function))
-(defcommand (41 order-by) (sequence &rest fields))
+(defcommand (41 order-by) (sequence fields &key index) :arrays (fields))
+(defcommand (41 order-by :defun nil) (sequence &rest fields))
 (defcommand (42 distinct) (sequence))
 (defcommand (43 count) (sequence))
 (defcommand (86 is-empty) (sequence))
