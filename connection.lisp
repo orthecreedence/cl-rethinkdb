@@ -20,7 +20,7 @@
                   nil
                   (lambda (ev) (reject ev))
                   :read-timeout read-timeout)))
-      (as:with-delay ()
+      (as:with-delay (0)
         (resolve sock)))))
 
 (defun finalize-connect (sock)
