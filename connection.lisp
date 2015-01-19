@@ -18,7 +18,7 @@
   (with-promise (resolve reject)
     (let ((sock (as:tcp-connect host port 
                   nil
-                  (lambda (ev) (reject ev))
+                  :event-cb (lambda (ev) (reject ev))
                   :read-timeout read-timeout)))
       (as:with-delay (0)
         (resolve sock)))))
