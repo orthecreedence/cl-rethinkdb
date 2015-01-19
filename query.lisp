@@ -323,7 +323,7 @@
         (catcher
           (wait (stop sock cursor)
             (resolve (disconnect sock)))
-          (t (e) (reject e)))
+          (error (e) (reject e)))
         (resolve (disconnect sock)))))
 
 (defun next (sock cursor)
@@ -350,7 +350,7 @@
                    (reject (make-instance 'cursor-no-more-results
                                           :token token
                                           :cursor cursor)))
-               (t (e) (reject e))))
+               (error (e) (reject e))))
             (t
              ;; have a local result, send it directly into the future
              (resolve (aref (cursor-results cursor) cur-result))))
@@ -367,15 +367,19 @@
   "Grab ALL results from a cursor. Returns a future finished with the final
    array."
   (with-promise (resolve reject)
-    (let ((token (cursor-token cursor)))
-      (labels ((append-results (all-results)
-                 (catcher
-                   (if (eq (cursor-state cursor) :partial)
-                       (wait (more sock token)
-                         (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
-                       (resolve all-results))
-                   (t (e) (reject e)))))
-        (append-results (cursor-results cursor))))))
+    (cond ((cursorp cursor)
+           (let ((token (cursor-token cursor)))
+             (labels ((append-results (all-results)
+                        (catcher
+                          (if (eq (cursor-state cursor) :partial)
+                              (wait (more sock token)
+                                (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
+                              (resolve all-results))
+                          (error (e) (reject e)))))
+               (append-results (cursor-results cursor)))))
+          ((arrayp cursor)
+           (resolve cursor))
+          (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
 (defun each (sock cursor function)
   "Call the given function on every result in the given cursor."
@@ -387,7 +391,7 @@
                        (wait (funcall function result)
                          (get-next)))
                      (resolve))
-                 (t (e) (reject e)))))
+                 (error (e) (reject e)))))
       (get-next))))
 
 (defun test_ (query-form)
@@ -405,6 +409,6 @@
                     (jprint res))
                   (jprint res))
               (format t "~%")))
-          (t (e) (format t "(err) ~a~%" e)))
+          (error (e) (format t "(err) ~a~%" e)))
         (disconnect main-sock)))))
 
