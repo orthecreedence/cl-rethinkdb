@@ -3,9 +3,14 @@
 (defparameter *commands* (make-hash-table :test 'eq)
   "Holds name -> lambda mappings for our commands.")
 
-(defun replace-arrays (x)
+(defun cmd-arg (x)
   "Makes sure all DATA (not command) arrays are wrapped in a make-array cmd."
-  (cond ((and (listp x)
+  (cond ((alistp x)
+         (let ((hash (make-hash-table :test #'equal)))
+           (loop for (k . v) in x do
+             (setf (gethash k hash) (cmd-arg v)))
+           hash))
+        ((and (listp x)
               (not (null x)))
          (apply 'make-array x))
         ((and (vectorp x)
@@ -14,17 +19,9 @@
         ((hash-table-p x)
          (loop for k being the hash-keys of x
                for v being the hash-values of x do
-           (setf (gethash k x) (replace-arrays v)))
+           (setf (gethash k x) (cmd-arg v)))
          x)
         (t x)))
-
-(defun cmd-arg (x)
-  "Wraps command arguments and runs any conversions we need."
-  ;; look for alists and convert to hash tables
-  (let ((val (cond ((alistp x)
-                    (alexandria:alist-hash-table x))
-                   (t x))))
-    (replace-arrays val)))
 
 (defclass reql-cmd ()
   ((name :accessor cmd-name :initarg :name :initform "")
