@@ -37,12 +37,11 @@
 
 (defmethod print-object ((cmd reql-cmd) s)
   (print-unreadable-object (cmd s :type t :identity t)
-    (format s "~_(~a/~a ~s "
+    (format s "~_~a/~a ~s "
             (cmd-name cmd)
             (cmd-op cmd)
             (cmd-args cmd))
-    (yason:encode (cmd-options cmd) s)
-    (format s ")")))
+    (yason:encode (cmd-options cmd) s)))
             
 (defmethod yason:encode ((cmd reql-cmd) &optional (stream *standard-output*))
   (yason:with-output (stream)
@@ -72,7 +71,8 @@
          (process-args (lambda ()
                          (loop for x in args collect
                            (if (find x arrays)
-                               `(if (listp ,x)
+                               `(if (and (listp ,x)
+                                         (not (null ,x)))
                                     ,x
                                     (list ,x))
                                `(list ,x)))))
