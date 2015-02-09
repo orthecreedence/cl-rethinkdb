@@ -378,7 +378,7 @@
                         (catcher
                           (if (eq (cursor-state cursor) :partial)
                               (wait (more sock token)
-                                (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
+                                (append-results (concatenate 'vector all-results (cursor-results cursor))))
                               (resolve all-results))
                           (error (e) (reject e)))))
                (append-results (cursor-results cursor)))))
