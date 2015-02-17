@@ -15,7 +15,7 @@
 (define-condition query-compile-error (query-error) ()
   (:report (lambda (c s) (format s "Query failed to compile (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A query compile error condition."))
-  
+
 (define-condition query-runtime-error (query-error) ()
   (:report (lambda (c s) (format s "Query runtime error (~a): ~a~%---~%~a" (query-error-token c) (query-error-msg c) (query-error-query c))))
   (:documentation "A query runtime error condition."))
@@ -108,7 +108,7 @@
   "This function returns a closure that can be called multiple times with data
    from a RethinkDB response. If a full response is received (over one or more
    calls) it returns the *full byte array of the response*, otherwise nil.
-   
+
    Note that the response chunks MUST be passed in in the order received."
   (let ((token nil)
         (response-buffer (fast-io:make-output-buffer))
@@ -137,14 +137,19 @@
           (let ((output (fast-io:finish-output-buffer response-buffer)))
             output))))))
 
+(defun json-to-response (json)
+  ;; make sure that the keys in any hash-tables are strings
+  (let ((yason:*parse-object-key-fn* #'identity))
+    (yason:parse (babel:octets-to-string json)
+                 :json-arrays-as-vectors t)))
+
 (defun parse-response (response-bytes)
   "Given a full response byte array, parse it, find the attached cursor (by
    token), and either resolve/reject the cursor's promise with the return of the
    query."
   (let* ((token (unendian response-bytes 8))
          (response-unparsed (subseq response-bytes (+ 8 4)))
-         (response (yason:parse (babel:octets-to-string response-unparsed)
-                                :json-arrays-as-vectors t))
+         (response (json-to-response response-unparsed))
          (cursor (get-cursor token))
          (query-form (cursor-debug cursor))
          (promise-data (cursor-future cursor))
@@ -373,7 +378,7 @@
                         (catcher
                           (if (eq (cursor-state cursor) :partial)
                               (wait (more sock token)
-                                (append-results (cl-async-util:append-array all-results (cursor-results cursor))))
+                                (append-results (concatenate 'vector all-results (cursor-results cursor))))
                               (resolve all-results))
                           (error (e) (reject e)))))
                (append-results (cursor-results cursor)))))
@@ -411,4 +416,3 @@
               (format t "~%")))
           (error (e) (format t "(err) ~a~%" e)))
         (disconnect main-sock)))))
-
