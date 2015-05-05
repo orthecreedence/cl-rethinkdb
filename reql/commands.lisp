@@ -208,7 +208,7 @@
 (defcommand (85 splice-at) (array1 index array2))
 
 (defcommand (51 coerce-to) (val string))
-(defcommand (52 type-of) (val))
+(defcommand (52 typeof) (val))
 
 (defcommand (53 update) (selection object/function &key non-atomic durability return-changes))
 (defcommand (54 delete) (selection &key durability return-changes))
@@ -343,4 +343,3 @@
 
 (defun expr (lisp-obj)
   (cmd-arg lisp-obj))
-
