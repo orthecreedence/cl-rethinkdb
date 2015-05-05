@@ -42,7 +42,7 @@
             (cmd-op cmd)
             (cmd-args cmd))
     (yason:encode (cmd-options cmd) s)))
-            
+
 (defmethod yason:encode ((cmd reql-cmd) &optional (stream *standard-output*))
   (yason:with-output (stream)
     (yason:with-array ()
@@ -186,7 +186,7 @@
 (defcommand (40 concatmap) (sequence function))
 (defcommand (41 order-by) (sequence fields &key index) :arrays (fields))
 (defcommand (41 order-by :defun nil) (sequence &rest fields))
-(defcommand (42 distinct) (sequence))
+(defcommand (42 distinct) (sequence &key index))
 (defcommand (43 count) (sequence))
 (defcommand (86 is-empty) (sequence))
 (defcommand (44 union) (&rest sequences))
@@ -331,4 +331,3 @@
 (defcommand (167 fill) (geo))
 (defcommand (168 get-nearest) (table geo &key index max-results max-dist geo-system unit))
 (defcommand (171 polygon-sub) (geo1 geo2))
-
