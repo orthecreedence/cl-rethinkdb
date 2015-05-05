@@ -14,6 +14,7 @@
            #:max
            #:merge
            #:append
+           #:type-of
            #:set-difference
            #:+
            #:-
