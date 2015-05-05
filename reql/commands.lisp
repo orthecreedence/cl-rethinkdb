@@ -341,3 +341,6 @@
 (defcommand (168 get-nearest) (table geo &key index max-results max-dist geo-system unit))
 (defcommand (171 polygon-sub) (geo1 geo2))
 
+(defun expr (lisp-obj)
+  (cmd-arg lisp-obj))
+
