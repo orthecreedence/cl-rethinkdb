@@ -183,7 +183,7 @@
 (defcommand (38 map) (sequence function))
 
 (defcommand (39 filter) (sequence function &key default))
-(defcommand (40 concatmap) (sequence function))
+(defcommand (40 concat-map) (sequence function))
 (defcommand (41 order-by) (sequence fields &key index) :arrays (fields))
 (defcommand (41 order-by :defun nil) (sequence &rest fields))
 (defcommand (42 distinct) (sequence &key index))
@@ -197,6 +197,9 @@
 (defcommand (49 outer-join) (sequence1 sequence2 function))
 (defcommand (50 eq-join) (sequence1 field sequence2 &key index))
 (defcommand (72 zip) (sequence))
+(defcommand (173 range) (lower upper))
+(defcommand (173 range :defun nil) (upper))
+(defcommand (173 range :defun nil) ())
 
 (defcommand (82 insert-at) (array index val))
 (defcommand (83 delete-at) (array index))
@@ -205,7 +208,7 @@
 (defcommand (85 splice-at) (array1 index array2))
 
 (defcommand (51 coerce-to) (val string))
-(defcommand (52 typeof) (val))
+(defcommand (52 type-of) (val))
 
 (defcommand (53 update) (selection object/function &key non-atomic durability return-changes))
 (defcommand (54 delete) (selection &key durability return-changes))
@@ -216,12 +219,17 @@
 (defcommand (58 db-drop) (name))
 (defcommand (59 db-list) ())
 
-(defcommand (60 table-create) (db name &key datacenter primary-key durability))
-(defcommand (60 table-create :defun nil) (name &key datacenter primary-key durability))
+(defcommand (60 table-create) (db name &key primary-key shards replicas primary-replica-tag))
+(defcommand (60 table-create :defun nil) (name &key primary-key shards replicas primary-replica-tag))
 (defcommand (61 table-drop) (db name))
 (defcommand (61 table-drop :defun nil) (name))
 (defcommand (62 table-list) (db))
 (defcommand (62 table-list :defun nil) ())
+(defcommand (174 config) (db/table))
+(defcommand (175 status) (table))
+(defcommand (177 wait) (db/table))
+(defcommand (176 reconfigure) (db/table &key shards replicas primary-replica-tag dry-run))
+(defcommand (179 rebalance) (db/table))
 
 (defcommand (138 sync) (table))
 
@@ -237,7 +245,7 @@
 (defcommand (65 branch) (bool true-expr false-expr))
 (defcommand (66 ||) (&rest bools))
 (defcommand (67 &&) (&rest bools))
-(defcommand (68 foreach) (sequence function))
+(defcommand (68 for-each) (sequence function))
 
 (defcommand (69 func) (args body))
 (defcommand (73 asc) (string))
@@ -255,6 +263,7 @@
 (defcommand (92 default) (object default))
 
 (defcommand (98 json) (string))
+(defcommand (172 to-json-string) (object))
 
 (defcommand (99 iso8601) (string))
 (defcommand (100 to-iso8601) (time))
@@ -331,3 +340,7 @@
 (defcommand (167 fill) (geo))
 (defcommand (168 get-nearest) (table geo &key index max-results max-dist geo-system unit))
 (defcommand (171 polygon-sub) (geo1 geo2))
+
+(defun expr (lisp-obj)
+  (cmd-arg lisp-obj))
+

@@ -25,7 +25,9 @@
                            `(call ,',k ,@args)))))
                 
     `(progn
-       (macrolet (,@(remove-duplicates macrolet-forms :test (lambda (x y)
+       (macrolet ((:expr (lisp-obj)
+                    `(expr ,lisp-obj))
+                  ,@(remove-duplicates macrolet-forms :test (lambda (x y)
                                                               (eq (car x) (car y)))))
          ,@query-form))))
 
