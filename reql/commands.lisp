@@ -208,7 +208,7 @@
 (defcommand (85 splice-at) (array1 index array2))
 
 (defcommand (51 coerce-to) (val string))
-(defcommand (52 typeof) (val))
+(defcommand (52 type-of) (val))
 
 (defcommand (53 update) (selection object/function &key non-atomic durability return-changes))
 (defcommand (54 delete) (selection &key durability return-changes))
@@ -322,7 +322,7 @@
 (defcommand (151 random :defun nil) (upper-bound &key float))
 (defcommand (151 random :defun nil) (&key float))
 
-(defcommand (152 changes) (table))
+(defcommand (152 changes) (table &key squash))
 (defcommand (154 args) (array))
 
 ;(defcommand (155 binary) (string))
