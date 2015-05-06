@@ -206,7 +206,7 @@
     (when (eq (cursor-state cursor) :finished)
       (remove-cursor cursor))))
 
-(defun connect (host port &key db use-outdated noreply profile (read-timeout 5) auth)
+(defun connect (host port &key db use-outdated noreply profile read-timeout auth)
   "Connect to a RethinkDB database, optionally specifying the database."
   (alet* ((sock (do-connect host port :read-timeout read-timeout)))
     ;; write the version 32-bit integer, little-endian
