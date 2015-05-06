@@ -166,7 +166,7 @@
 (defcommand (30 slice) (sequence start end))
 (defcommand (70 skip) (sequence number))
 (defcommand (71 limit) (sequence number))
-(defcommand (87 indexes-of) (sequence object/function))
+(defcommand (87 offsets-of) (sequence object/function))
 (defcommand (93 contains) (sequence object/function))
 
 (defcommand (31 attr) (object key))
@@ -178,7 +178,8 @@
 (defcommand (34 without) (sequence &rest pathspec))
 (defcommand (35 merge) (&rest objects))
 
-(defcommand (36 between) (stream left right &key index right-bound left-bound))
+(defcommand (36 between-dep) (stream left right &key index right-bound left-bound))
+(defcommand (182 between) (stream left right &key index right-bound left-bound))
 (defcommand (37 reduce) (sequence function))
 (defcommand (38 map) (sequence function))
 
@@ -307,6 +308,7 @@
 (defcommand (125 december) ())
 
 (defcommand (137 literal) (object))
+(defcommand (137 literal :defun nil) ())
 
 (defcommand (144 group) (sequence field/function &key index))
 (defcommand (145 sum) (sequence field/function))
@@ -322,7 +324,7 @@
 (defcommand (151 random :defun nil) (upper-bound &key float))
 (defcommand (151 random :defun nil) (&key float))
 
-(defcommand (152 changes) (table &key squash))
+(defcommand (152 changes) (table &key squash include-states))
 (defcommand (154 args) (array))
 
 ;(defcommand (155 binary) (string))
@@ -341,5 +343,7 @@
 (defcommand (168 get-nearest) (table geo &key index max-results max-dist geo-system unit))
 (defcommand (171 polygon-sub) (geo1 geo2))
 
-(defun expr (lisp-obj)
-  (cmd-arg lisp-obj))
+;; this isn't a command since it doesn't fit into the constant -> funciton num
+;; paradigm, so we just define it here (and in our dsl)
+(defun expr (lisp-obj) (cmd-arg lisp-obj))
+
