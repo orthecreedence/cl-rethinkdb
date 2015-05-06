@@ -2,11 +2,10 @@ cl-rethinkdb - RethinkDB driver for Common Lisp
 ===============================================
 This is an async [RethinkDB](http://www.rethinkdb.com/) driver for *everyone's*
 favorite programming language. It does its best to follow the [query language
-specification](http://www.rethinkdb.com/api/#js).
+specification](http://www.rethinkdb.com/api/#js). If it's missing any functions
+or has implemented any of them incorrectly, please open an issue.
 
-*This driver is up to date with RethinkDB's v1.15.x protocol.* Dates are now
-fully supported (although not as tested as the rest of the functionality, so
-please don't be shy to open issues).
+*This driver is up to date with RethinkDB's v2.0.x protocol.*
 
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
 and makes heavy use of [cl-async's promises](http://orthecreedence.github.io/blackbird/).
