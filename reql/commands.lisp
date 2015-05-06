@@ -180,6 +180,8 @@
 
 (defcommand (36 between-dep) (stream left right &key index right-bound left-bound))
 (defcommand (182 between) (stream left right &key index right-bound left-bound))
+(defcommand (180 minval) ())
+(defcommand (181 maxval) ())
 (defcommand (37 reduce) (sequence function))
 (defcommand (38 map) (sequence function))
 
