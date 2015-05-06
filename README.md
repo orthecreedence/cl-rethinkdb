@@ -93,7 +93,7 @@ which provides an interface to iterate over a set of atoms.
 
 ### connect (function)
 ```common-lisp
-(defun connect (host port &key db use-outdated noreply profile (read-timeout 5)))
+(defun connect (host port &key db use-outdated noreply profile read-timeout auth))
   => promise (tcp-socket)
 ```
 Connects a socket to the given host/port and returns a promise that's finished
