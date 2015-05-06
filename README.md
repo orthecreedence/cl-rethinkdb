@@ -9,7 +9,7 @@ fully supported (although not as tested as the rest of the functionality, so
 please don't be shy to open issues).
 
 As with most of my drivers, cl-rethinkdb requires [cl-async](http://orthecreedence.github.io/cl-async/),
-and makes heavy use of [cl-async's futures](http://orthecreedence.github.io/cl-async/future).
+and makes heavy use of [cl-async's promises](http://orthecreedence.github.io/blackbird/).
 
 This driver is built so that later on, more than one TCP backend can be used.
 Right now, the only one implemented is cl-async, but usocket/IOLib could just as
@@ -30,8 +30,8 @@ the internal types used, but even *I* make mistakes sometimes.
 
 Documentation
 =============
-The driver makes extensive use of futures, as mentioned, so be sure to know your
-way around the [future syntax macros](http://orthecreedence.github.io/cl-async/future#nicer-syntax)
+The driver makes extensive use of promises, as mentioned, so be sure to know your
+way around the [promise syntax macros](http://orthecreedence.github.io/blackbird/#nicer-syntax)
 when using it.
 
 Everything needed to use the driver is exported out of the `cl-rethinkdb`
@@ -94,9 +94,9 @@ which provides an interface to iterate over a set of atoms.
 ### connect (function)
 ```common-lisp
 (defun connect (host port &key db use-outdated noreply profile (read-timeout 5)))
-  => future (tcp-socket)
+  => promise (tcp-socket)
 ```
-Connects a socket to the given host/port and returns a future that's finished
+Connects a socket to the given host/port and returns a promise that's finished
 with the socket.
 
 Usage:
@@ -109,16 +109,16 @@ Usage:
 ### run (function)
 ```common-lisp
 (defun run (sock query-form))
-  => future (atom/cursor profile-data)
+  => promise (atom/cursor profile-data)
 ```
 Run a query against the given socket (connected using [connect](#connect-function)).
-Returns a future finished with either the atom the query returns or a cursor to
+Returns a promise finished with either the atom the query returns or a cursor to
 the query results.
 
-If `profile` is `t` when calling [connect](#connect), the second future value
+If `profile` is `t` when calling [connect](#connect), the second promise value
 will be the profile data returned with the query.
 
-`run` can signal the following errors on the future it returns:
+`run` can signal the following errors on the promise it returns:
 
 - [query-client-error](#query-client-error)
 - [query-compile-error](#query-compile-error)
@@ -136,7 +136,7 @@ Example
 ### wait-complete (function)
 ```common-lisp
 (defun wait-complete (sock))
-  => future (t)
+  => promise (t)
 ```
 Waits for all queries sent on this socket with `noreply => t` to finish. This
 lets you queue up a number of write operations on a socket. You can then call
@@ -167,13 +167,13 @@ Convenience function to tell if the given object is a cursor.
 ### next (function)
 ```common-lisp
 (defun next (sock cursor))
-  => future (atom)
+  => promise (atom)
 ```
-Gets the next result from a cursor. Returns a future that's finished with the
+Gets the next result from a cursor. Returns a promise that's finished with the
 next result. The result could be stored locally already, but it also may need to
 be retrieved from the server.
 
-`next` can signal two errors on the future it returns:
+`next` can signal two errors on the promise it returns:
 
 - [cursor-overshot](#cursor-overshot)
 - [cursor-no-more-results](#cursor-no-more-results)
@@ -203,11 +203,11 @@ Determines if a cursor has more results available.
 ### to-array (function)
 ```common-lisp
 (defun to-array (sock cursor))
-  => future (vector)
+  => promise (vector)
 ```
 Given a socket and a cursor, `to-array` grabs ALL the results from the cursor,
 going out to the server to get more if it has to, and returns them as an array
-through the returned future.
+through the returned promise.
 
 ```common-lisp
 (alet* ((sock (connect "127.0.0.1" 28015))
@@ -223,9 +223,9 @@ through the returned future.
 ### each (function)
 ```common-lisp
 (defun each (sock cursor function))
-  => future 
+  => promise 
 ```
-Call the given function on each of the results of a cursor. The returned future
+Call the given function on each of the results of a cursor. The returned promise
 is finished when all results have been iterated over.
 
 ```common-lisp
@@ -239,14 +239,16 @@ is finished when all results have been iterated over.
       (disconnect sock))))
 ```
 
+Note that
+
 ### stop (function)
 ```common-lisp
 (defun stop (sock cursor))
-  => future
+  => promise
 ```
 Stops a currently open query/cursor. This cleans up the cursor locally, and also
 lets RethinkDB know that the results for this cursor are no longer needed.
-Returns a future that is finished with *no values* when the operation is
+Returns a promise that is finished with *no values* when the operation is
 complete.
 
 ### stop/disconnect (function)
@@ -334,6 +336,8 @@ For a better understanding of the return types of the following commands, see
 - `index-list (table) => array`
 - `index-status (table &rest names) => array`
 - `index-wait (table &rest names) => array`
+- `changes (select &key squash include-states) => cursor`
+- `args (arg-list) => special`
 - `insert (table sequence/object &key upsert durability return-vals) => object`
 - `update (select object/function &key non-atomic durability return-vals) => object`
 - `replace (select object/function &key non-atomic durability return-vals) => object`
@@ -359,10 +363,11 @@ For a better understanding of the return types of the following commands, see
 - `limit (sequence number) => sequence`
 - `slice (sequence start end) => sequence`
 - `nth (sequence number) => object`
-- `indexes-of (sequence object/reql-function) => sequence`
+- `offsets-of (sequence object/reql-function) => sequence`
 - `is-empty (sequence) => boolean`
 - `union (sequence &rest sequences) => sequence`
 - `sample (sequence count) => sequence`
+- `random (lower &optional upper &key float) => number`
 - `group` (sequence fields-or-functions &key index) => grouped\_sequence
 - `ungroup (grouped-sequence) => sequence`
 - `reduce (sequence function) => object`
@@ -432,6 +437,25 @@ For a better understanding of the return types of the following commands, see
 - `seconds (time) => number`
 - `to-iso8601 (time) => string`
 - `to-epoch-time (time) => number`
+- `monday () => time`
+- `tuesday () => time`
+- `wednesday () => time`
+- `thursday () => time`
+- `friday () => time`
+- `saturday () => time`
+- `sunday () => time`
+- `january () => time`
+- `february () => time`
+- `march () => time`
+- `april () => time`
+- `may () => time`
+- `june () => time`
+- `july () => time`
+- `august () => time`
+- `september () => time`
+- `october () => time`
+- `november () => time`
+- `december () => time`
 - `do (function &rest args) => object`
 - `branch (boolean true-expr false-expr) => object`
 - `foreach (sequence function) => object`
@@ -443,13 +467,27 @@ For a better understanding of the return types of the following commands, see
 - `typeof (object) => type-string`
 - `info (object) => object`
 - `json (string) => object`
+- `to-json-string (object) => string`
 - `literal (&optional object) => object`
+- `geojson (object)) => geometry`
+- `to-geojson (geo)) => object`
+- `point (lat long)) => geometry`
+- `line (&rest array/geo)) => geometry`
+- `polygon (&rest array/geo)) => geometry`
+- `distance (geo-from geo-to &key geo-system unit)) => number`
+- `intersects (geo1 geo2)) => bool`
+- `includes (geo1 geo2)) => bool`
+- `circle (geo radius &key num-vertices geo-system unit fill)) => geometry`
+- `get-intersecting (table geo &key index)) => stream`
+- `fill (geo)) => geometry`
+- `get-nearest (table geo &key index max-results max-dist geo-system unit)) => array`
+- `polygon-sub (geo1 geo2)) => geometry`
 
 Errors
 ------
 These are the errors you may encounter while using this driver. Most (if not
-all) errors will be signalled on a future instead of thrown directly. Errors
-on a future can be caught via [future-handler-case](http://orthecreedence.github.io/cl-async/future#future-handler-case).
+all) errors will be signalled on a promise instead of thrown directly. Errors
+on a promise can be caught via [catcher](http://orthecreedence.github.io/blackbird/#catcher).
 
 ### query-error
 A general query error.
