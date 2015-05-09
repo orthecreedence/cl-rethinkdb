@@ -8,6 +8,7 @@
                #:cl-async
                #:fast-io
                #:yason
+               #:cl-base64
                #:cl-hash-util
                #:cl-ppcre)
   :components
@@ -21,7 +22,8 @@
      ((:file "types")
       (:file "function")
       (:file "commands")
-      (:file "dsl"))
+      (:file "dsl")
+      (:file "pseudotypes"))
      :depends-on ("config"))
    (:file "connection" :depends-on (reql "config"))
    (:file "query" :depends-on (reql "protocol" "config" "connection"))))

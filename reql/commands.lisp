@@ -13,6 +13,8 @@
         ((and (listp x)
               (not (null x)))
          (apply 'make-array x))
+        ((typep x '(cl:simple-array (cl:unsigned-byte 8) (cl:*)))
+         (binary (cl-base64:usb8-array-to-base64-string x)))
         ((and (vectorp x)
               (not (stringp x)))
          (apply 'make-array (coerce x 'list)))
@@ -329,8 +331,6 @@
 (defcommand (152 changes) (table &key squash include-states))
 (defcommand (154 args) (array))
 
-;(defcommand (155 binary) (string))
-
 (defcommand (157 geojson) (object))
 (defcommand (158 to-geojson) (geo))
 (defcommand (159 point) (lat long))
@@ -345,7 +345,14 @@
 (defcommand (168 get-nearest) (table geo &key index max-results max-dist geo-system unit))
 (defcommand (171 polygon-sub) (geo1 geo2))
 
-;; this isn't a command since it doesn't fit into the constant -> funciton num
+;; this isn't a command since it doesn't fit into the constant -> function num
 ;; paradigm, so we just define it here (and in our dsl)
 (defun expr (lisp-obj) (cmd-arg lisp-obj))
+
+;; this is a client-only function that takes base64 and wraps it in a format
+;; the server will understand.
+;(defcommand (155 binary) (string))
+(defun binary (base64-string)
+  (hu:hash ("$reql_type$" "BINARY")
+           ("data" base64-string)))
 

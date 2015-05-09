@@ -201,7 +201,11 @@
              ;; because i'm paranoid
              (setf value-set-p nil))))
     (when value-set-p
-      (funcall resolver value profile))
+      (funcall resolver
+               (if (cursorp value)
+                   value
+                   (convert-pseudotypes-recursive value))
+               profile))
     ;; if the query is finished, remove it from state tracking.
     (when (eq (cursor-state cursor) :finished)
       (remove-cursor cursor))))
@@ -358,7 +362,7 @@
                (error (e) (reject e))))
             (t
              ;; have a local result, send it directly into the future
-             (resolve (aref (cursor-results cursor) cur-result))))
+             (resolve (convert-pseudotypes-recursive (aref (cursor-results cursor) cur-result)))))
       ;; keep the pointer up to date
       (incf (cursor-current-result cursor)))))
 
@@ -379,11 +383,11 @@
                           (if (eq (cursor-state cursor) :partial)
                               (wait (more sock token)
                                 (append-results (concatenate 'vector all-results (cursor-results cursor))))
-                              (resolve all-results))
+                              (resolve (convert-pseudotypes-recursive all-results)))
                           (error (e) (reject e)))))
                (append-results (cursor-results cursor)))))
           ((arrayp cursor)
-           (resolve cursor))
+           (resolve (convert-pseudotypes-recursive cursor)))
           (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
 (defun each (sock cursor function)

@@ -27,6 +27,8 @@
     `(progn
        (macrolet ((:expr (lisp-obj)
                     `(expr ,lisp-obj))
+                  (:binary (base64-string)
+                    `(binary ,base64-string))
                   ,@(remove-duplicates macrolet-forms :test (lambda (x y)
                                                               (eq (car x) (car y)))))
          ,@query-form))))

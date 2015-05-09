@@ -31,7 +31,8 @@
            #:fill)
   ;; only export our DSL functions
   (:export #:r
-           #:fn)
+           #:fn
+           #:convert-pseudotypes-recursive)
   (:nicknames :reql))
 
 (defpackage :cl-rethinkdb

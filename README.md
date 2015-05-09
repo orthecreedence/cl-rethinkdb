@@ -206,6 +206,9 @@ through the returned promise.
     (disconnect sock)))
 ```
 
+Don't call `to-array` on a cursor returned from a changefeed. It will just sit
+there endlessly saving results to a list it will never return.
+
 ### each (function)
 ```common-lisp
 (defun each (sock cursor function))
@@ -225,7 +228,8 @@ is finished when all results have been iterated over.
       (disconnect sock))))
 ```
 
-Note that
+`each` is the function you want to use for listening to changes on a cursor that
+is returned from a changefeed.
 
 ### stop (function)
 ```common-lisp
@@ -255,6 +259,23 @@ not, just disconnects the socket without throwing any errors.
   => nil
 ```
 Disconnect a connection to a RethinkDB server. 
+
+Binary data
+-----------
+Binary data is now part of the driver. Using it is simple...you pass in an
+unsigned byte array (ie `(simple-erray (unsigned-byte 8) (*))`) and the driver
+will handle encoding of the binary data for you. Binary data passed in *must*
+be of the unsigned-byte type, or your data will just be encoded as an array (or
+whatever type it actually is).
+
+When an object is returned that has binary data, the driver converts it back to
+an unsigned byte array.
+
+You can also *force* usage of the binary type by using the `(:binary ...)`
+type in the DSL. It takes 1 argument: a base64 string of your data. Note,
+however, that if you do use `(:binary "ZG93biB3aXRoIHRoZSBvcHByZXNzaXZlIGNhcGl0YWxpc3QgcmVnaW1l")`,
+when you pull that document out, the data will be encoded as a raw unsigned-byte
+array (not a base64 string).
 
 Config
 ------
@@ -324,6 +345,7 @@ For a better understanding of the return types of the following commands, see
 - `index-wait (table &rest names) => array`
 - `changes (select &key squash include-states) => cursor`
 - `args (arg-list) => special`
+- `binary (base64-string) => binary`
 - `insert (table sequence/object &key upsert durability return-vals) => object`
 - `update (select object/function &key non-atomic durability return-vals) => object`
 - `replace (select object/function &key non-atomic durability return-vals) => object`
