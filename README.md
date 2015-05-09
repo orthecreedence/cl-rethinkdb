@@ -533,6 +533,12 @@ _extends [cursor-error](#cursor-error)_
 Thrown when [next](#next-function) is called on a cursor that has no more
 results. You can test this by using [has-next](#has-next-function).
 
+### reql-error
+A REQL error. This is thrown when there's an error in the returned REQL data
+from the database. For instance, if a time value comes back without a timestamp
+or binary data type comes back without the payload. Generally, if the database
+itself is functioning correctly, you won't see this error.
+
 License
 -------
 MIT. Enjoy.
