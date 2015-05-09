@@ -32,44 +32,47 @@
   ;; only export our DSL functions
   (:export #:r
            #:fn
-           #:convert-pseudotypes-recursive)
+           #:convert-pseudotypes-recursive
+           #:reql-error)
   (:nicknames :reql))
 
 (defpackage :cl-rethinkdb
   (:use :cl :cl-rethinkdb-util :blackbird :cl-rethinkdb-reql)
-  (:export :*state*
-           :state
-           
-           :*sequence-type*
-           :*object-type*
-           
-           :query-error
-           :query-error-msg
-           :query-client-error
-           :query-compile-error
-           :query-runtime-error
+  (:export #:*state*
+           #:state
 
-           :cursor-error
-           :cursor-no-more-results
-           :cursor-overshot
+           #:*sequence-type*
+           #:*object-type*
 
-           :cursor
-           :cursorp
+           #:query-error
+           #:query-error-msg
+           #:query-client-error
+           #:query-compile-error
+           #:query-runtime-error
 
-           :connect
-           :disconnect
+           #:cursor-error
+           #:cursor-no-more-results
+           #:cursor-overshot
 
-           :run
-           :wait-complete
-           :next
-           :has-next
-           :to-array
-           :each
-           :stop
-           :stop/disconnect
+           #:reql-error
+
+           #:cursor
+           #:cursorp
+
+           #:connect
+           #:disconnect
+
+           #:run
+           #:wait-complete
+           #:next
+           #:has-next
+           #:to-array
+           #:each
+           #:stop
+           #:stop/disconnect
 
            ;; export ReQL DSL functions
-           :r
-           :fn)
+           #:r
+           #:fn)
   (:nicknames :r))
 
