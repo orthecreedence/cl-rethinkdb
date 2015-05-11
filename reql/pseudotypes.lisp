@@ -9,7 +9,6 @@
   "Handle pseudotypes."
   (let ((type (and (hash-table-p obj)
                    (gethash "$reql_type$" obj)) ))
-    (format t "type: ~a~%" type)
     (unless type
       (return-from convert-pseudotypes obj))
     (case (intern (string-upcase type) :keyword)
@@ -34,7 +33,7 @@
               (not (stringp obj)))
          (loop for x across obj
                for i from 0 do
-           (setf (aref obj x) (convert-pseudotypes-recursive x))))
+           (setf (aref obj i) (convert-pseudotypes-recursive x))))
         ((listp obj)
          (loop for x in obj
                for i from 0 collect (convert-pseudotypes-recursive x)))
