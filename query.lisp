@@ -390,6 +390,15 @@
            (resolve (convert-pseudotypes-recursive cursor)))
           (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
+(defun to-sequence (sock cursor)
+  "Takes a socket and a cursor an returns a sequence of all the items that
+   cursor points to (the type of sequence returned depends on *sequence-type*)"
+  (chain (to-array sock cursor)
+    (:then (arr)
+      (if (eq *sequence-type* :list)
+          (coerce arr 'list)
+          arr))))
+
 (defun each (sock cursor function)
   "Call the given function on every result in the given cursor."
   (with-promise (resolve reject)

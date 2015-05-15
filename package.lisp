@@ -67,6 +67,7 @@
            #:next
            #:has-next
            #:to-array
+           #:to-sequence
            #:each
            #:stop
            #:stop/disconnect
