@@ -176,8 +176,7 @@ be retrieved from the server.
     (alet ((user (next sock cursor)))
       (format t "second user is: ~s~%" user)
       ;; let the server/driver know we're done with this result set
-      (wait-for (stop cursor)
-        (disconnect sock)))))
+      (stop/disconnect sock cursor))))
 ```
 
 ### has-next (function)
@@ -213,8 +212,7 @@ through the returned promise.
         (all-records (to-array sock cursor)))
   (format t "All users: ~s~%" all-records)
   ;; cleanup
-  (wait-for (stop sock cursor)
-    (disconnect sock)))
+  (stop/disconnect sock cursor))
 ```
 
 Don't call `to-array` on a cursor returned from a changefeed. It will just sit
@@ -232,10 +230,10 @@ is finished when all results have been iterated over.
 (alet* ((sock (connect "127.0.0.1" 28015))
         (cursor (run sock (r (:table "users")))))
   ;; print each user
-  (wait-for (each sock cursor
-              (lambda (x) (format t "user: ~s~%" x)))
+  (wait (each sock cursor
+          (lambda (x) (format t "user: ~s~%" x)))
     ;; cleanup
-    (wait-for (stop sock cursor)
+    (wait (stop sock cursor)
       (disconnect sock))))
 ```
 
