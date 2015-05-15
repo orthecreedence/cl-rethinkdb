@@ -195,7 +195,7 @@ Determines if a cursor has more results available.
 Given a socket and a cursor, `to-sequence` grabs ALL the results from the cursor,
 going out to the server to get more if it has to, and returns them as a sequence
 through the returned promise. The sequence type (vector/list) depends on the
-value of [*sequence-type*](#sequence-type).
+value of [\*sequence-type\*](#sequence-type).
 
 ### to-array (function)
 ```common-lisp
