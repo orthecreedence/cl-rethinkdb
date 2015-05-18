@@ -278,7 +278,6 @@
                                    (declare (ignore ev))
                                    (unless (find (cursor-state ,mcursor)
                                                  '(:finished :stop))
-                                     (format t "cursor stopped! reject ~a~%" ,mstate)
                                      (ev:trigger (ev:event :close :data (make-instance 'cursor-stopped :cursor ,mcursor))
                                                  :on ,dispatch)))
                           :on ,mcursor
