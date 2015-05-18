@@ -53,6 +53,7 @@
            #:cursor-error
            #:cursor-no-more-results
            #:cursor-overshot
+           #:cursor-stopped
 
            #:reql-error
 

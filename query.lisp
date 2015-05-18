@@ -36,6 +36,11 @@
                                  (cursor-error-cursor c))))
   (:documentation "Thrown when a cursor has no more results on it."))
 
+(define-condition cursor-stopped (cursor-error) ()
+  (:report (lambda (c s) (format s "Cursor being waited on was stopped: ~a"
+                                 (cursor-error-cursor c))))
+  (:documentation "Thrown when a cursor that has a pending operation is stopped."))
+
 (defclass state ()
   ((token :accessor state-token :initform 0)
    (active-queries :accessor active-queries :initform (make-hash-table :test #'eq)))
@@ -46,7 +51,7 @@
     (format s "~_token: ~s " (state-token state))
     (format s "~_queries: ~s" (hash-table-count (active-queries state)))))
 
-(defclass cursor ()
+(defclass cursor (ev:dispatch)
   ((state :accessor cursor-state :initarg :state :initform :new
      :documentation "Describes the current state of the query (new, complete, etc).")
    (future :accessor cursor-future :initarg :future :initform nil
@@ -67,8 +72,8 @@
 
 (defmethod (setf cursor-state) :after (x (cursor cursor))
   "Track whenever the state changes in a query."
-  (declare (ignore x))
-  (setf (cursor-last-change cursor) (get-internal-real-time)))
+  (setf (cursor-last-change cursor) (get-internal-real-time))
+  (ev:trigger (ev:event :state-change :data x) :on cursor))
 
 (defmethod (setf cursor-results) :after (x (cursor cursor))
   "Make sure to reset the curr-result pointer when setting in new results."
@@ -102,7 +107,8 @@
 (defun remove-cursor (cursor &key (state *state*))
   "Remove a cursor/token from state tracking."
   (let ((token (cursor-token cursor)))
-    (remhash token (active-queries state))))
+    (remhash token (active-queries state))
+    (ev:trigger (ev:event :close :data (list token)) :on cursor)))
 
 (defun make-response-handler ()
   "This function returns a closure that can be called multiple times with data
@@ -147,68 +153,63 @@
   "Given a full response byte array, parse it, find the attached cursor (by
    token), and either resolve/reject the cursor's promise with the return of the
    query."
-  (let* ((token (unendian response-bytes 8))
-         (response-unparsed (subseq response-bytes (+ 8 4)))
-         (response (json-to-response response-unparsed))
-         (cursor (get-cursor token))
-         (query-form (cursor-debug cursor))
-         (promise-data (cursor-future cursor))
-         (resolver (car promise-data))
-         (rejecter (cdr promise-data))
-         (response-type (gethash "t" response))
-         (value (gethash "r" response))
-         (value-set-p nil)
-         (backtrace (gethash "b" response))
-         (profile (gethash "p" response)))
-    (vom:info "recv: ~a" (babel:octets-to-string response-unparsed))
-    (setf (cursor-state cursor) :finished)
-    (cond ((eq response-type +rdb-response-atom+)
-           (setf value (aref value 0)
-                 value-set-p t))
-          ((eq response-type +rdb-response-sequence+)
-           ;; we have a sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) value
-                 value cursor
-                 value-set-p t))
-          ((eq response-type +rdb-response-partial+)
-           ;; we have a partial sequence, so return a cursor. results accessible via (next ...)
-           (setf (cursor-results cursor) value
-                 value cursor
-                 value-set-p t
-                 (cursor-state cursor) :partial))
-          ((eq response-type +rdb-response-wait-complete+)
-           ;; we have a NOREPLY_WAIT response. just finish.
-           (setf (cursor-results cursor) value
-                 value t
-                 value-set-p t))
-          ((or (find response-type (list +rdb-response-client-error+
-                                         +rdb-response-compile-error+
-                                         +rdb-response-runtime-error+)))
-           ;; some kind of error, signal the future...
-           (let* ((fail-msg (aref value 0))
-                  (error-obj (make-instance (cond ((eq response-type +rdb-response-client-error+)
-                                                   'query-client-error)
-                                                  ((eq response-type +rdb-response-compile-error+)
-                                                   'query-compile-error)
-                                                  ((eq response-type +rdb-response-runtime-error+)
-                                                   'query-runtime-error))
-                                            :msg fail-msg
-                                            :query query-form
-                                            :backtrace backtrace)))
-             (catcher
-               (error error-obj)
-               ((or error simple-error) (e) (funcall rejecter e)))
-             ;; because i'm paranoid
-             (setf value-set-p nil))))
-    (when value-set-p
-      (funcall resolver
-               (if (cursorp value)
-                   value
-                   (convert-pseudotypes-recursive value))
-               profile))
-    ;; if the query is finished, remove it from state tracking.
-    (when (eq (cursor-state cursor) :finished)
-      (remove-cursor cursor))))
+  (with-promise (resolve reject)
+    (let* ((token (unendian response-bytes 8))
+           (response-unparsed (subseq response-bytes (+ 8 4)))
+           (response (json-to-response response-unparsed))
+           (cursor (get-cursor token))
+           (query-form (cursor-debug cursor))
+           (response-type (gethash "t" response))
+           (value (gethash "r" response))
+           (value-set-p nil)
+           (backtrace (gethash "b" response))
+           (profile (gethash "p" response)))
+      (vom:info "recv: ~a" (babel:octets-to-string response-unparsed))
+      (setf (cursor-state cursor) :finished)
+      (cond ((eq response-type +rdb-response-atom+)
+             (setf value (aref value 0)
+                   value-set-p t))
+            ((eq response-type +rdb-response-sequence+)
+             ;; we have a sequence, so return a cursor. results accessible via (next ...)
+             (setf (cursor-results cursor) value
+                   value cursor
+                   value-set-p t))
+            ((eq response-type +rdb-response-partial+)
+             ;; we have a partial sequence, so return a cursor. results accessible via (next ...)
+             (setf (cursor-results cursor) value
+                   value cursor
+                   value-set-p t
+                   (cursor-state cursor) :partial))
+            ((eq response-type +rdb-response-wait-complete+)
+             ;; we have a NOREPLY_WAIT response. just finish.
+             (setf (cursor-results cursor) value
+                   value t
+                   value-set-p t))
+            ((or (find response-type (list +rdb-response-client-error+
+                                           +rdb-response-compile-error+
+                                           +rdb-response-runtime-error+)))
+             ;; some kind of error, signal the future...
+             (let* ((fail-msg (aref value 0))
+                    (error-obj (make-instance (cond ((eq response-type +rdb-response-client-error+)
+                                                     'query-client-error)
+                                                    ((eq response-type +rdb-response-compile-error+)
+                                                     'query-compile-error)
+                                                    ((eq response-type +rdb-response-runtime-error+)
+                                                     'query-runtime-error))
+                                              :msg fail-msg
+                                              :query query-form
+                                              :backtrace backtrace)))
+               (reject error-obj)
+               ;; because i'm paranoid
+               (setf value-set-p nil))))
+      (when value-set-p
+        (resolve (if (cursorp value)
+                     value
+                     (convert-pseudotypes-recursive value))
+                 profile))
+      ;; if the query is finished, remove it from state tracking.
+      (when (eq (cursor-state cursor) :finished)
+        (remove-cursor cursor)))))
 
 (defun connect (host port &key db use-outdated noreply profile read-timeout auth)
   "Connect to a RethinkDB database, optionally specifying the database."
@@ -248,82 +249,100 @@
     (with-output-to-string (s)
       (yason:encode query s))))
 
+;;; ----------------------------------------------------------------------------
+;;; Main querying functions
+;;; ----------------------------------------------------------------------------
+
+(defmacro with-query ((sock cursor token query state &key reject-on-stop) resolve reject)
+  (let ((msock (gensym "sock"))
+        (mcursor (gensym "cursor"))
+        (mtoken (gensym "token"))
+        (mstate (gensym "state"))
+        (serialized (gensym "serialized"))
+        (finalize-promise (gensym "finalize-promise"))
+        (dispatch (gensym "dispatch"))
+        (bind-name (intern (string (gensym "BIND-NAME")) :keyword)))
+    `(let* ((,msock ,sock)
+            (,mcursor ,cursor)
+            (,mtoken ,token)
+            (,mstate ,state)
+            (,serialized (serialize-query ,query)))
+       (sock-write ,msock (endian ,mtoken 8))
+       (sock-write ,msock (endian (length ,serialized) 4))
+       (sock-write ,msock ,serialized)
+       (setf (cursor-state ,mcursor) ,mstate)
+       (multiple-value-bind (,finalize-promise ,dispatch)
+           (finalize-query ,msock)
+         ,(when reject-on-stop
+           `(ev:bind-once :close (lambda (ev)
+                                   (declare (ignore ev))
+                                   (unless (find (cursor-state ,mcursor)
+                                                 '(:finished :stop))
+                                     (format t "cursor stopped! reject ~a~%" ,mstate)
+                                     (ev:trigger (ev:event :close :data (make-instance 'cursor-stopped :cursor ,mcursor))
+                                                 :on ,dispatch)))
+                          :on ,mcursor
+                          :name ,bind-name))
+         (vom:info "send: ~a" (babel:octets-to-string ,serialized))
+         (catcher
+           (,resolve
+             ,(if reject-on-stop
+                  `(tap ,finalize-promise
+                     (lambda (&rest args)
+                       (ev:unbind :close ,bind-name :on ,mcursor) ))
+                  finalize-promise))
+           (error (e) (,reject e)))))))
+
 (defun run (sock query-form)
   "This function runs the given query, and returns a future that's finished when
    the query response comes in."
-  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+  (with-promise (resolve reject)
     (let* ((token (generate-token))
            (query-options (hu:hash))
            (query (list +proto-query-start+ query-form query-options))
-           (cursor (make-instance 'cursor
-                                  :token token
-                                  :future (cons resolver rejecter)
-                                  :debug query-form))
+           (cursor (make-instance 'cursor :token token :debug query-form))
            (options (socket-data sock))
            (kv (conn-kv options)))
       (dolist (opt kv)
         (setf (gethash (car opt) query-options) (cdr opt)))
       (save-cursor token cursor)
-      (let ((serialized (serialize-query query)))
-        (sock-write sock (endian token 8))
-        (sock-write sock (endian (length serialized) 4))
-        (sock-write sock serialized)
-        (finalize-query sock)
-        (vom:info "send: run: ~a" (babel:octets-to-string serialized))
-        (setf (cursor-state cursor) :sent)))))
+      (with-query (sock cursor token query :sent :reject-on-stop t)
+                  resolve reject))))
 
 (defun wait-complete (sock)
   "Wait for noreply => t queries to come back LOL."
-  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+  (with-promise (resolve reject)
     (let* ((token (generate-token))
            (query (list +proto-query-wait+))
-           (cursor (make-instance 'cursor
-                                  :token token
-                                  :future (cons resolver rejecter))))
+           (cursor (make-instance 'cursor :token token)))
       (save-cursor token cursor)
-      (let ((serialized (serialize-query query)))
-        (sock-write sock (endian token 8))
-        (sock-write sock (endian (length serialized) 4))
-        (sock-write sock serialized)
-        (vom:info "send: wait: ~a" (babel:octets-to-string serialized))
-        (finalize-query sock)
-        (setf (cursor-state cursor) :wait)))))
+      (with-query (sock cursor token query state :reject-on-stop t)
+                  resolve reject))))
 
 (defun more (sock token)
   "Continue a query."
-  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+  (with-promise (resolve reject)
     (let* ((query (list +proto-query-continue+))
            (cursor (get-cursor token)))
-      ;; replace the cursor's promise resolver
-      (setf (cursor-future cursor) (cons resolver rejecter))
-      (save-cursor token cursor)
-      (let ((serialized (serialize-query query)))
-        (sock-write sock (endian token 8))
-        (sock-write sock (endian (length serialized) 4))
-        (sock-write sock serialized)
-        (finalize-query sock)
-        (vom:info "send: more: ~a" (babel:octets-to-string serialized))
-        (setf (cursor-state cursor) :more)))))
+      (with-query (sock cursor token query :more :reject-on-stop t)
+                  resolve reject))))
 
 (defun stop (sock cursor)
   "Cleanup a cursor both locally and in the database. Returns a future that is
    finished with *no values* once the stop operation has completed."
-  (with-promise (resolve reject :resolve-fn resolver :reject-fn rejecter)
+  (with-promise (resolve reject)
     (let* ((query (list +proto-query-stop+))
            (token (cursor-token cursor)))
-      ;; replace the cursor's promise resolver
-      (setf (cursor-future cursor) (cons resolver rejecter))
       (if (eq (cursor-state cursor) :partial)
-          (let ((serialized (serialize-query query)))
-            (sock-write sock (endian token 8))
-            (sock-write sock (endian (length serialized) 4))
-            (sock-write sock serialized)
-            (finalize-query sock)
-            (vom:info "send: stop: ~a" (babel:octets-to-string serialized))
-            (setf (cursor-state cursor) :stop))
+          (with-query (sock cursor token query :stop)
+                      resolve reject)
           (progn
             (remove-cursor cursor)
             (resolve))))))
+
+;;; ----------------------------------------------------------------------------
+;;; API/util functions
+;;; ----------------------------------------------------------------------------
 
 (defun stop/disconnect (sock cursor)
   "Call stop on a cursor and disconnect the passed socket."
@@ -361,7 +380,7 @@
                                           :cursor cursor)))
                (error (e) (reject e))))
             (t
-             ;; have a local result, send it directly into the future
+             ;; have a local result, send it directly into the promise
              (resolve (convert-pseudotypes-recursive (aref (cursor-results cursor) cur-result)))))
       ;; keep the pointer up to date
       (incf (cursor-current-result cursor)))))
@@ -405,27 +424,10 @@
     (labels ((get-next ()
                (catcher
                  (if (has-next cursor)
-                     (alet* ((result (next sock cursor)))
-                       (wait (funcall function result)
-                         (get-next)))
+                     (alet* ((result (next sock cursor))
+                             (nil (funcall function result)))
+                       (get-next))
                      (resolve))
                  (error (e) (reject e)))))
       (get-next))))
 
-(defun test_ (query-form)
-  (as:with-event-loop (:catch-app-errors nil)
-    (let ((main-sock nil))
-      (finally
-        (catcher
-          (alet* ((sock (connect "127.0.0.1" 28015 :db "test" :read-timeout 5)))
-            (setf main-sock sock)
-            (multiple-promise-bind (res)
-                (run sock query-form)
-              (format t "---response---~%")
-              (if (cursorp res)
-                  (alet* ((res (to-array sock res)))
-                    (jprint res))
-                  (jprint res))
-              (format t "~%")))
-          (error (e) (format t "(err) ~a~%" e)))
-        (disconnect main-sock)))))
