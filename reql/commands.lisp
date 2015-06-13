@@ -42,18 +42,15 @@
     (format s "~_~a/~a ~s "
             (cmd-name cmd)
             (cmd-op cmd)
-            (cmd-args cmd))
-    (yason:encode (cmd-options cmd) s)))
+            (cmd-args cmd)
+            (jonathan:to-json (cmd-options cmd)))))
 
-(defmethod yason:encode ((cmd reql-cmd) &optional (stream *standard-output*))
-  (yason:with-output (stream)
-    (yason:with-array ()
-      (let ((elements (cl:append
-                        (list (cmd-op cmd)
-                              (cmd-args cmd))
-                        (unless (zerop (hash-table-count (cmd-options cmd)))
-                          (list (cmd-options cmd))))))
-        (apply 'yason:encode-array-elements elements)))))
+(defmethod jonathan:%to-json ((cmd reql-cmd))
+  (jonathan:with-array
+    (jonathan:write-item (cmd-op cmd))
+    (jonathan:write-item (cmd-args cmd))
+    (unless (zerop (hash-table-count (cmd-options cmd)))
+      (jonathan:write-item (cmd-options cmd)))))
 
 (defmacro defcommand ((termval name &key (defun t)) all-args &key docstr arrays)
   "Wraps creation of commands."

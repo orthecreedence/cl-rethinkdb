@@ -8,7 +8,7 @@
                #:event-glue
                #:cl-async
                #:fast-io
-               #:yason
+               #:jonathan
                #:cl-base64
                #:cl-hash-util
                #:cl-ppcre)

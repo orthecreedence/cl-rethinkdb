@@ -20,8 +20,7 @@
 
 (defun json (obj)
   "Guess."
-  (with-output-to-string (s)
-    (yason:encode obj s)))
+  (jonathan:to-json obj))
 
 (test query-lang
   "Test that creation/serialization of queries works"

@@ -49,7 +49,8 @@
                ,@body))))))
 
 (defun jprint (obj &optional (stream t))
-  (yason:encode obj stream)
+  (jonathan:with-output (stream)
+    (jonathan:to-json obj))
   (format stream "~%")
   nil)
 

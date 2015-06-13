@@ -145,9 +145,7 @@
 
 (defun json-to-response (json)
   ;; make sure that the keys in any hash-tables are strings
-  (let ((yason:*parse-object-key-fn* #'identity))
-    (yason:parse (babel:octets-to-string json)
-                 :json-arrays-as-vectors t)))
+  (jonathan:parse (babel:octets-to-string json) :as :hash-table))
 
 (defun parse-response (response-bytes)
   "Given a full response byte array, parse it, find the attached cursor (by
@@ -160,7 +158,7 @@
            (cursor (get-cursor token))
            (query-form (cursor-debug cursor))
            (response-type (gethash "t" response))
-           (value (gethash "r" response))
+           (value (coerce (gethash "r" response) 'vector))
            (value-set-p nil)
            (backtrace (gethash "b" response))
            (profile (gethash "p" response)))
@@ -246,8 +244,7 @@
 (defun serialize-query (query)
   "Turn a query into a byte array."
   (babel:string-to-octets
-    (with-output-to-string (s)
-      (yason:encode query s))))
+   (jonathan:to-json query)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; Main querying functions
