@@ -23,6 +23,8 @@
                for v being the hash-values of x do
            (setf (gethash k x) (cmd-arg v)))
          x)
+        ((null x)
+         :null)
         (t x)))
 
 (defclass reql-cmd ()
@@ -43,7 +45,8 @@
             (cmd-name cmd)
             (cmd-op cmd)
             (cmd-args cmd)
-            (jonathan:to-json (cmd-options cmd)))))
+            (let ((jonathan:*null-value* :null))
+              (jonathan:to-json (cmd-options cmd))))))
 
 (defmethod jonathan:%to-json ((cmd reql-cmd))
   (jonathan:with-array
@@ -103,8 +106,9 @@
              (apply fn (cl:append (cl:append (list ,@args) ,(car restargs))
                                   ,@(loop for default in optargs-processed
                                           for x = (car default) collect
-                                      `(when ,(caddr default)
-                                         (list ,(intern (string x) :keyword) ,x))))))))))
+                                      `(if ,(caddr default)
+                                           (list ,(intern (string x) :keyword) ,x)
+                                           :null)))))))))
 
 (defun call (fn &rest all-args)
   "Call a command by name."

@@ -244,7 +244,8 @@
 (defun serialize-query (query)
   "Turn a query into a byte array."
   (babel:string-to-octets
-   (jonathan:to-json query)))
+    (let ((jonathan:*null-value* :null))
+      (jonathan:to-json query))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; Main querying functions

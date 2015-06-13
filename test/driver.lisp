@@ -21,7 +21,8 @@
 
 (defun json (obj)
   "Guess."
-  (jonathan:to-json obj))
+  (let ((jonathan:*null-value* :null))
+    (jonathan:to-json obj)))
 
 (test query-lang
   "Test that creation/serialization of queries works"

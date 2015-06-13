@@ -49,8 +49,9 @@
                ,@body))))))
 
 (defun jprint (obj &optional (stream t))
-  (jonathan:with-output (stream)
-    (jonathan:to-json obj))
+  (let ((jonathan:*null-value* :null))
+    (jonathan:with-output (stream)
+      (jonathan:to-json obj)))
   (format stream "~%")
   nil)
 
