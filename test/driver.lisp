@@ -1,6 +1,7 @@
 (defpackage :cl-rethinkdb-test
   (:use :cl :fiveam :blackbird :cl-rethinkdb :cl-hash-util)
-  (:shadow cl-rethinkdb:run)
+  (:shadow cl-rethinkdb:run
+           blackbird:*debug-on-error*)
   (:export #:run-tests))
 (in-package :cl-rethinkdb-test)
 (def-suite cl-rethinkdb-test :description "cl-rethinkdb test suite")
@@ -75,7 +76,7 @@
         (setf err e))
       (:finally
         (disconnect sock)))
-    (is (string= (json res) "{\"created\":1}"))
+    (is (eq (gethash "tables_created" res) 1))
     (is (eq err nil))))
 
 (test (insert :depends-on setup)
