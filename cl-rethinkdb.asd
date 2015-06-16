@@ -1,7 +1,7 @@
 (asdf:defsystem cl-rethinkdb
   :author "Andrew Danger Lyon <orthecreedence@gmail.com>"
   :license "MIT"
-  :version "0.6.2"
+  :version "0.6.3"
   :description "A RethinkDB driver for Common Lisp"
   :depends-on (#:blackbird
                #:vom
