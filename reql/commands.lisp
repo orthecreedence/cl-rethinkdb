@@ -86,7 +86,7 @@
                            for jskey in optarg-keys
                            for default in optargs-processed collect
                        `(when ,(caddr default)
-                          (setf (gethash ,jskey ,hash-sym) ,key)))
+                          (setf (gethash ,jskey ,hash-sym) (or ,key :null))))
                    (make-instance 'reql-cmd
                                   :name ,name-keyword
                                   :op ,termval
