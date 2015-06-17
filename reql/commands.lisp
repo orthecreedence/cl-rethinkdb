@@ -73,10 +73,13 @@
          (process-args (lambda ()
                          (loop for x in args collect
                            (if (find x arrays)
-                               `(if (and (listp ,x)
-                                         (not (null ,x)))
-                                    ,x
-                                    (list ,x))
+                               `(cond ((and (listp ,x)
+                                            (not (null ,x)))
+                                       ,x)
+                                      ((simple-vector-p ,x)
+                                       (coerce ,x 'list))
+                                      (t
+                                       (list ,x)))
                                `(list ,x)))))
          (hash-sym (gensym "hash"))
          (name-keyword (intern (string name) :keyword)))
