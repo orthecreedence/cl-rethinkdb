@@ -16,7 +16,7 @@
         (let ((epoch (gethash "epoch_time" obj)))
           (unless epoch
             (cl:error (make-instance 'reql-error :msg "pseudotype TIME missing `epoch_time` field")))
-          epoch))
+          (local-time:unix-to-timestamp (floor epoch))))
       (:grouped_data
         (mapcar (lambda (x) (hu:hash ("group" (elt x 0)) ("reduction" (elt x 1))))
                 (gethash "data" obj)))
