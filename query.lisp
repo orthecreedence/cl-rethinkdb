@@ -145,7 +145,9 @@
 
 (defun json-to-response (json)
   ;; make sure that the keys in any hash-tables are strings
-  (jonathan:parse (babel:octets-to-string json) :as :hash-table))
+  (let ((jonathan:*null-value* :null)
+        (jonathan:*false-value* :false))
+    (jonathan:parse (babel:octets-to-string json) :as :hash-table)))
 
 (defun parse-response (response-bytes)
   "Given a full response byte array, parse it, find the attached cursor (by
@@ -402,7 +404,8 @@
                               (resolve (convert-pseudotypes-recursive all-results)))
                           (error (e) (reject e)))))
                (append-results (cursor-results cursor)))))
-          ((arrayp cursor)
+          ((or (arrayp cursor)
+               (listp cursor))
            (resolve (convert-pseudotypes-recursive cursor)))
           (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
