@@ -5,6 +5,7 @@
   :description "A RethinkDB driver for Common Lisp"
   :depends-on (#:blackbird
                #:vom
+               #:local-time
                #:event-glue
                #:cl-async
                #:fast-io
