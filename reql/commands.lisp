@@ -10,8 +10,7 @@
            (loop for (k . v) in x do
              (setf (gethash k hash) (cmd-arg v)))
            hash))
-        ((and (listp x)
-              (not (null x)))
+        ((and (listp x))
          (apply 'make-array x))
         ((typep x '(cl:simple-array (cl:unsigned-byte 8) (cl:*)))
          (binary (cl-base64:usb8-array-to-base64-string x)))
@@ -23,8 +22,6 @@
                for v being the hash-values of x do
            (setf (gethash k x) (cmd-arg v)))
          x)
-        ((null x)
-         :null)
         (t x)))
 
 (defclass reql-cmd ()
