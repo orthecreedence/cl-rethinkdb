@@ -402,7 +402,8 @@
                               (resolve (convert-pseudotypes-recursive all-results)))
                           (error (e) (reject e)))))
                (append-results (cursor-results cursor)))))
-          ((arrayp cursor)
+          ((or (arrayp cursor)
+               (listp cursor))
            (resolve (convert-pseudotypes-recursive cursor)))
           (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
