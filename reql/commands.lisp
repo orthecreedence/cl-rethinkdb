@@ -19,10 +19,11 @@
               (not (stringp x)))
          (apply 'make-array (coerce x 'list)))
         ((hash-table-p x)
-         (loop for k being the hash-keys of x
-               for v being the hash-values of x do
-           (setf (gethash k x) (cmd-arg v)))
-         x)
+         (let ((hash (make-hash-table :test #'equal)))
+           (loop for k being the hash-keys of x
+                 for v being the hash-values of x do
+             (setf (gethash k hash) (cmd-arg v)))
+           hash))
         ((null x)
          :null)
         (t x)))
