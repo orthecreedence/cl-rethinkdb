@@ -145,8 +145,8 @@
 (defcommand (13 row) ())
 
 (defcommand (14 db) (dbname))
-(defcommand (15 table) (db tablename))
-(defcommand (15 table :defun nil) (tablename))
+(defcommand (15 table) (db tablename &key read-mode identifier-format))
+(defcommand (15 table :defun nil) (tablename &key read-mode identifier-format))
 (defcommand (16 get) (table id))
 (defcommand (78 get-all) (table ids &key index) :arrays (ids))
 (defcommand (17 ==) (&rest objects))

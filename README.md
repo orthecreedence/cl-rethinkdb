@@ -360,7 +360,7 @@ For a better understanding of the return types of the following commands, see
 - `replace (select object/function &key non-atomic durability return-changes) => object`
 - `delete (select &key durability return-changes) => object`
 - `db (db-name) => db`
-- `table (table-name) => sequence`
+- `table (db table-name &key read-mode identifier-format) => sequence`
 - `get (table item-id) => object`
 - `get-all (table key/keys &key index) => array`  
   (`key/keys` can be either a string type or a list of string types)
