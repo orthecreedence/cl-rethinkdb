@@ -477,7 +477,7 @@ For a better understanding of the return types of the following commands, see
 - `december () => time`
 - `do (function &rest args) => object`
 - `branch (boolean true-expr false-expr) => object`
-- `foreach (sequence function) => object`
+- `for-each (sequence function) => object`
 - `error (message) => error`
 - `default (top1 top2) => top`
 - `expr (lisp-object) => RethinkDB object`
