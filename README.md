@@ -355,10 +355,10 @@ For a better understanding of the return types of the following commands, see
 - `changes (select &key squash include-states) => cursor`
 - `args (arg-list) => special`
 - `binary (base64-string) => binary`
-- `insert (table sequence/object &key upsert durability return-vals) => object`
-- `update (select object/function &key non-atomic durability return-vals) => object`
-- `replace (select object/function &key non-atomic durability return-vals) => object`
-- `delete (select &key durability return-vals) => object`
+- `insert (table sequence/object &key conflict durability return-changes) => object`
+- `update (select object/function &key non-atomic durability return-changes) => object`
+- `replace (select object/function &key non-atomic durability return-changes) => object`
+- `delete (select &key durability return-changes) => object`
 - `db (db-name) => db`
 - `table (table-name) => sequence`
 - `get (table item-id) => object`
