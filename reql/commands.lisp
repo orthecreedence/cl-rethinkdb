@@ -142,7 +142,7 @@
 (defcommand (169 uuid) ())
 (defcommand (153 http) (url &key data timeout method params header attemps redirects verify page page-limit auth result-format))
 (defcommand (12 error) (errstr))
-(defcommand (13 implicit-var) ())
+(defcommand (13 row) ())
 
 (defcommand (14 db) (dbname))
 (defcommand (15 table) (db tablename))
