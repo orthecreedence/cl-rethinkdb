@@ -328,14 +328,16 @@
   "Cleanup a cursor both locally and in the database. Returns a future that is
    finished with *no values* once the stop operation has completed."
   (with-promise (resolve reject)
-    (let* ((query (list +proto-query-stop+))
-           (token (cursor-token cursor)))
-      (if (eq (cursor-state cursor) :partial)
-          (with-query (sock cursor token query :stop)
-                      resolve reject)
-          (progn
-            (remove-cursor cursor)
-            (resolve))))))
+    (if (cursorp cursor)
+        (let* ((query (list +proto-query-stop+))
+               (token (cursor-token cursor)))
+          (if (eq (cursor-state cursor) :partial)
+              (with-query (sock cursor token query :stop)
+                          resolve reject)
+              (progn
+                (remove-cursor cursor)
+                (resolve))))
+        (resolve))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; API/util functions
@@ -404,7 +406,7 @@
                (append-results (cursor-results cursor)))))
           ((or (arrayp cursor)
                (listp cursor))
-           (resolve (convert-pseudotypes-recursive cursor)))
+           (resolve (convert-pseudotypes-recursive (coerce cursor 'vector))))
           (t (error (format nil "to-array: bad cursor given: ~a" cursor))))))
 
 (defun to-sequence (sock cursor)
