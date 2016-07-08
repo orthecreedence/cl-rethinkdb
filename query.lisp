@@ -313,7 +313,7 @@
            (query (list +proto-query-wait+))
            (cursor (make-instance 'cursor :token token)))
       (save-cursor token cursor)
-      (with-query (sock cursor token query state :reject-on-stop t)
+      (with-query (sock cursor token query :wait :reject-on-stop t)
                   resolve reject))))
 
 (defun more (sock token)
